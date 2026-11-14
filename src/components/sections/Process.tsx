@@ -9,7 +9,11 @@ import ProcessCtaSection from './process/ProcessCtaSection'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function Process() {
+interface ProcessProps {
+  isStandalonePage?: boolean
+}
+
+export default function Process({ isStandalonePage = true }: ProcessProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -81,11 +85,15 @@ export default function Process() {
     <section
       id="process"
       ref={sectionRef}
+      data-scroll-section="PROCESS"
       aria-labelledby="process-heading"
       style={{
         background: '#F8F5EE',
         color: '#14161C',
-        padding: 'clamp(6rem, 11vw, 10.5rem) 0',
+        paddingTop: isStandalonePage
+          ? 'clamp(7.5rem, 13vw, 11rem)'
+          : 'clamp(6rem, 11vw, 10.5rem)',
+        paddingBottom: 'clamp(6rem, 11vw, 10.5rem)',
         position: 'relative',
         overflow: 'hidden',
       }}

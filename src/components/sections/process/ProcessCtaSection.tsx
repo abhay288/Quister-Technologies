@@ -1,16 +1,16 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { PROCESS_CTA_DATA } from './processPhasesData'
-import { smoothScrollTo } from '../../../utils/smoothScroll'
+import { navigateTo } from '../../../utils/router'
 
 export default function ProcessCtaSection() {
   const handlePrimaryClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    smoothScrollTo('#contact', { offset: -20, duration: 1.35 })
+    navigateTo('/', '#contact')
   }
 
   const handleSecondaryClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    smoothScrollTo('#work', { offset: -20, duration: 1.35 })
+    navigateTo('/', '#work')
   }
 
   return (

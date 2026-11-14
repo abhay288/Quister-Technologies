@@ -12,7 +12,7 @@ interface SitemapItem {
 const sitemap: SitemapItem[] = [
   { label: 'Selected Work', route: '/', hash: '#work' },
   { label: 'About Studio', route: '/about' },
-  { label: 'Process Lifecycle', route: '/', hash: '#process' },
+  { label: 'Process Lifecycle', route: '/process' },
   { label: 'Technology Capabilities', route: '/about', hash: '#technology-expertise' },
   { label: 'Initiate Collaboration', route: '/', hash: '#contact' },
 ]

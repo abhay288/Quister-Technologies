@@ -3,7 +3,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { getLenis, smoothScrollTo } from './smoothScroll'
 
-export type AppRoute = '/' | '/about'
+export type AppRoute = '/' | '/about' | '/process'
 
 export type TransitionPhase = 'idle' | 'covering' | 'loading' | 'revealing'
 
@@ -39,11 +39,20 @@ const ROUTE_METADATA: Record<AppRoute, RouteMetadata> = {
     ogDescription:
       'Independent by design. Engineering-led by default. Discover how QUISTER TECHNOLOGIES approaches design, software architecture, operating principles and delivery.',
   },
+  '/process': {
+    title: 'How We Work | QUISTER TECHNOLOGIES — Five-Stage Engineering Process',
+    description:
+      'Explore QUISTER TECHNOLOGIES\' five-stage client-facing engineering and delivery framework: Discover, Design, Develop, Launch, and Evolve with transparent deliverables and commitments.',
+    ogTitle: 'How We Work | QUISTER TECHNOLOGIES — Five-Stage Engineering Process',
+    ogDescription:
+      'From ambition to something real. Discover our structured delivery framework, deliverables, client inputs, and transparent commitments.',
+  },
 }
 
 export function normalizePathname(pathname: string): AppRoute {
   const cleaned = pathname.replace(/\/+$/, '') || '/'
   if (cleaned === '/about') return '/about'
+  if (cleaned === '/process') return '/process'
   return '/'
 }
 
@@ -393,6 +402,10 @@ export function useAppRoute(): AppRoute {
 
     // Handle initial deep-link hash on direct page load (no transition overlay on initial load)
     const initialHash = window.location.hash
+    if (initialHash === '#process' && route === '/') {
+      navigateTo('/process')
+      return
+    }
     if (initialHash) {
       window.setTimeout(() => {
         ScrollTrigger.refresh()

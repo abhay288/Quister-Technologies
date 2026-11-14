@@ -12,7 +12,7 @@ interface NavLinkItem {
 const navLinks: NavLinkItem[] = [
   { label: 'Work', route: '/', hash: '#work' },
   { label: 'About', route: '/about' },
-  { label: 'Process', route: '/', hash: '#process' },
+  { label: 'Process', route: '/process' },
   { label: 'Contact', route: '/', hash: '#contact' },
 ]
 
@@ -195,7 +195,7 @@ export default function Navigation({ currentRoute }: NavigationProps) {
             {/* Desktop Nav Links */}
             <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-7 xl:gap-8">
               {navLinks.map((link) => {
-                const isActive = link.route === '/about' && currentRoute === '/about'
+                const isActive = link.route === currentRoute && !link.hash
                 const href = link.hash ? `${link.route === '/' ? '' : link.route}/${link.hash}`.replace('//', '/') : link.route
 
                 return (
@@ -362,7 +362,7 @@ export default function Navigation({ currentRoute }: NavigationProps) {
           }}
         >
           {navLinks.map((link) => {
-            const isActive = link.route === '/about' && currentRoute === '/about'
+            const isActive = link.route === currentRoute && !link.hash
             return (
               <button
                 key={link.label}

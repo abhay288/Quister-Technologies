@@ -6,10 +6,14 @@ import { AppRoute } from '../../utils/router'
 export default function ScrollHUD({ currentRoute }: { currentRoute: AppRoute }) {
   const [progress, setProgress] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
-  const [currentSection, setCurrentSection] = useState(currentRoute === '/about' ? 'ABOUT' : 'HERO')
+  const [currentSection, setCurrentSection] = useState(
+    currentRoute === '/about' ? 'ABOUT' : currentRoute === '/process' ? 'PROCESS' : 'HERO'
+  )
 
   useEffect(() => {
-    setCurrentSection(currentRoute === '/about' ? 'ABOUT' : 'HERO')
+    setCurrentSection(
+      currentRoute === '/about' ? 'ABOUT' : currentRoute === '/process' ? 'PROCESS' : 'HERO'
+    )
   }, [currentRoute])
 
   useEffect(() => {
@@ -31,14 +35,16 @@ export default function ScrollHUD({ currentRoute }: { currentRoute: AppRoute }) 
       setProgress(Math.min(Math.max(p, 0), 1))
       setIsVisible(scrollY > 280)
 
-      if (currentRoute === '/about') {
-        const aboutSections = Array.from(
+      if (currentRoute === '/about' || currentRoute === '/process') {
+        const pageSections = Array.from(
           document.querySelectorAll<HTMLElement>('[data-scroll-section]')
         ).reverse()
-        for (const el of aboutSections) {
+        for (const el of pageSections) {
           const rect = el.getBoundingClientRect()
           if (rect.top <= window.innerHeight * 0.45 && rect.bottom >= 0) {
-            setCurrentSection(el.dataset.scrollSection || 'ABOUT')
+            setCurrentSection(
+              el.dataset.scrollSection || (currentRoute === '/about' ? 'ABOUT' : 'PROCESS')
+            )
             break
           }
         }
@@ -46,7 +52,7 @@ export default function ScrollHUD({ currentRoute }: { currentRoute: AppRoute }) 
       }
 
       // Detect current section in view on home route
-      const sections = ['contact', 'process', 'about', 'work', 'hero']
+      const sections = ['contact', 'about', 'work', 'hero']
       for (const id of sections) {
         const el = document.getElementById(id)
         if (el) {

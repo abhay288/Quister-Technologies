@@ -6,13 +6,13 @@ import Navigation from './components/navigation/Navigation'
 import HeroSection from './components/hero/HeroSection'
 import SelectedWork from './components/sections/SelectedWork'
 import About from './components/sections/About'
-import Process from './components/sections/Process'
 import Contact from './components/sections/Contact'
 import Footer from './components/layout/Footer'
 import CustomCursor from './components/common/CustomCursor'
 import ScrollHUD from './components/common/ScrollHUD'
 import GlobalPageTransition from './components/common/GlobalPageTransition'
 import AboutPage from './pages/AboutPage'
+import ProcessPage from './pages/ProcessPage'
 
 function App() {
   const currentRoute = useAppRoute()
@@ -43,12 +43,13 @@ function App() {
       {/* Route View */}
       {currentRoute === '/about' ? (
         <AboutPage />
+      ) : currentRoute === '/process' ? (
+        <ProcessPage />
       ) : (
         <main>
           <HeroSection />
           <SelectedWork />
           <About />
-          <Process />
           <Contact />
         </main>
       )}
