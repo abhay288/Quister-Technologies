@@ -168,8 +168,8 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                     fontSize: '0.625rem',
                     letterSpacing: '0.24em',
                     textTransform: 'uppercase',
-                    color: isLightPage ? '#9A7A4A' : 'var(--color-champagne)',
-                    fontWeight: 600,
+                    color: isLightPage ? '#14161C' : 'var(--color-champagne)',
+                    fontWeight: 700,
                     transition: 'opacity 300ms',
                   }}
                   className="group-hover:opacity-85"
@@ -180,7 +180,7 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: '0.78125rem',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     letterSpacing: '0.16em',
                     textTransform: 'uppercase',
                     color: isLightPage ? '#14161C' : 'var(--color-ivory)',
@@ -197,10 +197,10 @@ export default function Navigation({ currentRoute }: NavigationProps) {
               className="hidden xl:flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.2em] pl-4 transition-colors duration-300"
               style={{
                 borderLeft: isLightPage
-                  ? '1px solid rgba(20, 22, 28, 0.14)'
+                  ? '1px solid rgba(20, 22, 28, 0.18)'
                   : '1px solid rgba(255, 255, 255, 0.10)',
-                color: isLightPage ? '#7A5B28' : 'rgba(201, 164, 102, 0.85)',
-                fontWeight: 500,
+                color: isLightPage ? '#14161C' : 'rgba(201, 164, 102, 0.85)',
+                fontWeight: 600,
               }}
             >
               <span
@@ -230,14 +230,14 @@ export default function Navigation({ currentRoute }: NavigationProps) {
 
                 const defaultColor = isLightPage
                   ? isActive
-                    ? '#9A7A4A'
-                    : 'rgba(20, 22, 28, 0.72)'
+                    ? '#14161C'
+                    : 'rgba(20, 22, 28, 0.75)'
                   : isActive
                   ? 'var(--color-champagne)'
                   : 'rgba(243, 239, 232, 0.72)'
 
                 const hoverColor = isLightPage
-                  ? '#14161C'
+                  ? '#9A7A4A'
                   : isActive
                   ? 'var(--color-champagne-light)'
                   : 'var(--color-ivory)'

@@ -18,7 +18,7 @@ export default function ProcessPhasesGrid({
   return (
     <div
       role="region"
-      aria-label="Five Delivery Stages"
+      aria-label="Six Engineering Lifecycle Stages"
       className="w-full relative"
     >
       {/* =====================================================================

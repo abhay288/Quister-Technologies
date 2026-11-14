@@ -1,17 +1,16 @@
-import { useRef, useMemo, useEffect, type MutableRefObject } from 'react'
+import { useRef, useMemo, useEffect, useState, type MutableRefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
-  MILESTONE_CURVE_PARAMS,
-  PHASE_CAMERA_TARGETS,
-  buildSculptureSpineData,
-  buildContinuousSculptureGeometry,
-  buildSubtleMilestoneInlayGeometry,
-  createBrushedGoldTextureSet,
-  createLuxuryGalleryEnvironment,
-  attachProgressionShader,
-  type ProgressionUniforms,
-} from './engineeringSculptureBuilder'
+  ARCHITECTURAL_FORMS,
+  PRECISION_CAMERA_TARGETS,
+  FormSplineCurve,
+  buildMonolithicChassisGeometry,
+  buildRecessedInlayGeometry,
+  buildInterlockingCollarGeometry,
+  createLuxuryStudioTextures,
+  createStudioGalleryEnvironment,
+} from './precisionSculptureBuilder'
 
 interface LifecycleRibbon3DProps {
   activePhase: number
@@ -21,17 +20,17 @@ interface LifecycleRibbon3DProps {
   onPhaseSelect?: (index: number) => void
 }
 
-const COLOR_ACTIVE_EMISSIVE = new THREE.Color('#F3D792')
-const COLOR_DONE_EMISSIVE = new THREE.Color('#B58F50')
-const COLOR_IDLE_EMISSIVE = new THREE.Color('#544022')
-const COLOR_ACTIVE_ALBEDO = new THREE.Color('#FFF6E1')
-const COLOR_DONE_ALBEDO = new THREE.Color('#E6CC98')
-const COLOR_IDLE_ALBEDO = new THREE.Color('#BE9E67')
+const COLOR_ACTIVE_INLAY = new THREE.Color('#FFF6E1')
+const COLOR_ACTIVE_EMISSIVE = new THREE.Color('#F5DC9F')
+const COLOR_DONE_INLAY = new THREE.Color('#D4B276')
+const COLOR_DONE_EMISSIVE = new THREE.Color('#5E4318')
+const COLOR_IDLE_INLAY = new THREE.Color('#B58F50')
+const COLOR_IDLE_EMISSIVE = new THREE.Color('#2A1E0E')
 
 // ---------------------------------------------------------------------------
-// Luxury Studio Environment & Controlled Three-Point Product Lighting Rig
+// Luxury Studio Environment & Controlled Product Lighting Rig
 // ---------------------------------------------------------------------------
-function LuxuryStudioLightingRig({
+function PrecisionStudioLightingRig({
   glidingLightRef,
 }: {
   glidingLightRef: React.RefObject<THREE.PointLight>
@@ -39,7 +38,7 @@ function LuxuryStudioLightingRig({
   const { gl, scene } = useThree()
 
   useEffect(() => {
-    const envTexture = createLuxuryGalleryEnvironment(gl)
+    const envTexture = createStudioGalleryEnvironment(gl)
     const prevEnv = scene.environment
     scene.environment = envTexture
 
@@ -51,25 +50,25 @@ function LuxuryStudioLightingRig({
 
   return (
     <>
-      <ambientLight color="#3D3122" intensity={0.72} />
-      {/* Large Warm Champagne Overhead Key Light */}
-      <directionalLight position={[4.8, 6.4, 4.8]} color="#FFF6E8" intensity={1.25} />
-      {/* Neutral Fill Light */}
-      <directionalLight position={[-5.4, 2.2, 3.8]} color="#EAE6DF" intensity={0.72} />
-      {/* Warm Brass Rim Light */}
-      <directionalLight position={[1.4, -2.0, -5.6]} color="#E0BA74" intensity={0.95} />
-      {/* Soft Floor Warm Bronze Bounce */}
-      <directionalLight position={[0, -4.5, 2.5]} color="#C29958" intensity={0.42} />
-      {/* Subtle Gliding Milestone Accent Light */}
-      <pointLight ref={glidingLightRef} color="#F5DC9F" intensity={0.68} distance={2.4} decay={2} />
+      <ambientLight color="#2E2419" intensity={0.65} />
+      {/* Primary Warm Champagne Key Light */}
+      <directionalLight position={[5.2, 6.8, 5.0]} color="#FFF7EC" intensity={1.35} />
+      {/* Cool Slate Studio Fill */}
+      <directionalLight position={[-5.6, 2.4, 4.0]} color="#E4E8F0" intensity={0.75} />
+      {/* Warm Antique Gold Rim Light */}
+      <directionalLight position={[1.5, -2.2, -5.8]} color="#DFB872" intensity={1.05} />
+      {/* Floor Bronze Bounce */}
+      <directionalLight position={[0, -4.8, 2.6]} color="#C29958" intensity={0.45} />
+      {/* Dynamic Gliding Active Element Spotlight */}
+      <pointLight ref={glidingLightRef} color="#F5DC9F" intensity={1.2} distance={3.5} decay={2} />
     </>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Sculpted Satin Champagne-Gold Architectural Monument Scene
+// Precision Architectural Monument 3D Scene
 // ---------------------------------------------------------------------------
-function ArchitecturalSculptureScene({
+function PrecisionArchitectureScene({
   activePhase,
   scrollProgress = 0,
   scrollProgressRef,
@@ -88,42 +87,122 @@ function ArchitecturalSculptureScene({
   const fitGroupRef = useRef<THREE.Group>(null)
   const masterGroupRef = useRef<THREE.Group>(null)
   const glidingLightRef = useRef<THREE.PointLight>(null)
-  const camLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(-0.14, -0.06, 0.04))
-  const lightTargetPosRef = useRef<THREE.Vector3>(new THREE.Vector3())
-  const smoothedProgressRef = useRef<number>(MILESTONE_CURVE_PARAMS[0])
-  const milestoneCoreLevelsRef = useRef<number[]>([1, 0, 0, 0, 0])
 
-  const progressionUniforms = useRef<ProgressionUniforms>({
-    uActiveU: { value: MILESTONE_CURVE_PARAMS[0] },
-  })
+  const camLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
+  const smoothedPhaseRef = useRef<number>(0)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
-  // Compute responsive container fit purely from canvas pixel aspect (independent of camera Z travel)
-  // so scroll camera depth reveals genuine perspective changes without rescaling the whole sculpture.
+  // Compute responsive container fit so perspective adjusts naturally
   const responsiveFitScale = useMemo(() => {
     const aspect = size.width / Math.max(1, size.height)
-    const refViewH = 2 * 5.45 * Math.tan(THREE.MathUtils.degToRad(34 * 0.5))
+    const refViewH = 2 * 5.4 * Math.tan(THREE.MathUtils.degToRad(34 * 0.5))
     const refViewW = refViewH * aspect
-    const sculptureDiameterW = 6.08
-    const sculptureDiameterH = 2.68
-    const occupancyW = aspect < 1.25 ? 0.82 : 0.72
-    const occupancyH = 0.70
-    const fitW = (refViewW * occupancyW) / sculptureDiameterW
-    const fitH = (refViewH * occupancyH) / sculptureDiameterH
-    return Math.min(1.04, fitW, fitH)
+    const sculptureSpanW = 6.2
+    const sculptureSpanH = 3.0
+    const occupancyW = aspect < 1.2 ? 0.84 : 0.74
+    const occupancyH = 0.72
+    const fitW = (refViewW * occupancyW) / sculptureSpanW
+    const fitH = (refViewH * occupancyH) / sculptureSpanH
+    return Math.min(1.05, fitW, fitH)
   }, [size.width, size.height])
 
-  const brushedTextures = useMemo(() => createBrushedGoldTextureSet(), [])
+  const textures = useMemo(() => createLuxuryStudioTextures(), [])
 
+  // Generate 6 Monolithic Forms, Inlays, and Interlocking Mechanical Collars
+  const assembly = useMemo(() => {
+    const splines: FormSplineCurve[] = []
+    const chassisGeometries: THREE.BufferGeometry[] = []
+    const inlayGeometries: THREE.BufferGeometry[] = []
+    const collarGeometries: THREE.BufferGeometry[] = []
+    const centerPoints: THREE.Vector3[] = []
+
+    ARCHITECTURAL_FORMS.forEach((form) => {
+      const curve = new FormSplineCurve(form.controlPoints)
+      splines.push(curve)
+      chassisGeometries.push(
+        buildMonolithicChassisGeometry(curve, form.width, form.thickness, form.chamfer, 64)
+      )
+      inlayGeometries.push(
+        buildRecessedInlayGeometry(curve, form.width, form.thickness, 48)
+      )
+      centerPoints.push(curve.getPoint(0.5))
+    })
+
+    // 5 Interlocking Smoked Titanium Collars bridging consecutive stages
+    for (let i = 0; i < ARCHITECTURAL_FORMS.length - 1; i++) {
+      const pEnd = splines[i].getPoint(0.96)
+      const pStartNext = splines[i + 1].getPoint(0.04)
+      const midPos = new THREE.Vector3().addVectors(pEnd, pStartNext).multiplyScalar(0.5)
+      const tangent = splines[i].getTangent(1.0)
+      collarGeometries.push(
+        buildInterlockingCollarGeometry(midPos, tangent, 0.28, 0.22, 32)
+      )
+    }
+
+    return {
+      splines,
+      chassisGeometries,
+      inlayGeometries,
+      collarGeometries,
+      centerPoints,
+    }
+  }, [])
+
+  // Physical Materials for Chassis, Inlays, and Interlocking Sleeves
+  const materials = useMemo(() => {
+    // 1. Primary Satin Champagne Gold Monolithic Body
+    const chassisMaterial = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color('#D8C49D'),
+      map: textures.albedoMap,
+      roughnessMap: textures.roughnessMap,
+      bumpMap: textures.bumpMap,
+      bumpScale: 0.0006,
+      metalness: 0.92,
+      roughness: 0.22,
+      clearcoat: 0.25,
+      clearcoatRoughness: 0.16,
+      envMapIntensity: 1.25,
+    })
+
+    // 2. Six Recessed Optical Chronometer Channels (one per form)
+    const inlayMaterials = ARCHITECTURAL_FORMS.map(
+      () =>
+        new THREE.MeshStandardMaterial({
+          color: COLOR_IDLE_INLAY.clone(),
+          emissive: COLOR_IDLE_EMISSIVE.clone(),
+          emissiveIntensity: 0.15,
+          metalness: 0.88,
+          roughness: 0.32,
+          envMapIntensity: 1.2,
+        })
+    )
+
+    // 3. Dark Smoked Titanium Interlocking Connector Sleeves
+    const collarMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#222329'),
+      metalness: 0.95,
+      roughness: 0.28,
+      envMapIntensity: 0.95,
+    })
+
+    return {
+      chassisMaterial,
+      inlayMaterials,
+      collarMaterial,
+    }
+  }, [textures])
+
+  // Soft Contact Shadow Texture
   const shadowTex = useMemo(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 256
     canvas.height = 256
     const ctx = canvas.getContext('2d')
     if (!ctx) return null
-    const grad = ctx.createRadialGradient(128, 128, 8, 128, 128, 126)
-    grad.addColorStop(0, 'rgba(0, 0, 0, 0.70)')
-    grad.addColorStop(0.38, 'rgba(12, 9, 6, 0.36)')
-    grad.addColorStop(0.75, 'rgba(12, 9, 6, 0.08)')
+    const grad = ctx.createRadialGradient(128, 128, 10, 128, 128, 124)
+    grad.addColorStop(0, 'rgba(0, 0, 0, 0.68)')
+    grad.addColorStop(0.38, 'rgba(12, 10, 8, 0.34)')
+    grad.addColorStop(0.75, 'rgba(12, 10, 8, 0.08)')
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)')
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, 256, 256)
@@ -132,91 +211,21 @@ function ArchitecturalSculptureScene({
     return tex
   }, [])
 
-  const sculptureParts = useMemo(() => {
-    const spine = buildSculptureSpineData(360)
-    const mainBodyGeo = buildContinuousSculptureGeometry(spine, 72)
-
-    // Six ultra-refined, narrow chamfered milestone inlays integrated flush into the spine
-    const milestoneAssemblies = MILESTONE_CURVE_PARAMS.map((u) => ({
-      u,
-      rimBevel: buildSubtleMilestoneInlayGeometry(spine, u, 0.0048, 0.009, 72, 14),
-      opticalInlay: buildSubtleMilestoneInlayGeometry(spine, u, 0.0020, 0.013, 72, 10),
-    }))
-
-    return {
-      spine,
-      mainBodyGeo,
-      milestoneAssemblies,
-    }
-  }, [])
-
-  const materials = useMemo(() => {
-    const primaryChampagneMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#D8C39A'), // Refined satin champagne gold (not flat yellow)
-      map: brushedTextures.albedoMap,
-      roughnessMap: brushedTextures.roughnessMap,
-      bumpMap: brushedTextures.bumpMap,
-      bumpScale: 0.0005,
-      metalness: 0.90,
-      roughness: 0.27,
-      anisotropy: 0.55,
-      anisotropyRotation: 0,
-      clearcoat: 0.14,
-      clearcoatRoughness: 0.28,
-      envMapIntensity: 1.15,
-    })
-    attachProgressionShader(primaryChampagneMat, progressionUniforms.current)
-
-    // Restrained warm antique champagne-bronze bevel trim (close in metallic luxury harmony)
-    const warmBronzeBevelMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#A68856'),
-      roughnessMap: brushedTextures.roughnessMap,
-      bumpMap: brushedTextures.bumpMap,
-      bumpScale: 0.0004,
-      metalness: 0.91,
-      roughness: 0.25,
-      anisotropy: 0.45,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.24,
-      envMapIntensity: 1.18,
-    })
-
-    const opticalInlayMats = MILESTONE_CURVE_PARAMS.map(
-      () =>
-        new THREE.MeshPhysicalMaterial({
-          color: COLOR_IDLE_ALBEDO.clone(),
-          emissive: COLOR_IDLE_EMISSIVE.clone(),
-          emissiveIntensity: 0.08,
-          metalness: 0.89,
-          roughness: 0.19,
-          clearcoat: 0.36,
-          clearcoatRoughness: 0.14,
-          envMapIntensity: 1.25,
-        })
-    )
-
-    return {
-      primaryChampagneMat,
-      warmBronzeBevelMat,
-      opticalInlayMats,
-    }
-  }, [brushedTextures])
-
+  // Cleanup WebGL resources on unmount
   useEffect(() => {
     return () => {
-      brushedTextures.dispose()
+      textures.dispose()
       if (shadowTex) shadowTex.dispose()
-      sculptureParts.mainBodyGeo.dispose()
-      sculptureParts.milestoneAssemblies.forEach((m) => {
-        m.rimBevel.dispose()
-        m.opticalInlay.dispose()
-      })
-      materials.primaryChampagneMat.dispose()
-      materials.warmBronzeBevelMat.dispose()
-      materials.opticalInlayMats.forEach((m) => m.dispose())
+      assembly.chassisGeometries.forEach((g) => g.dispose())
+      assembly.inlayGeometries.forEach((g) => g.dispose())
+      assembly.collarGeometries.forEach((g) => g.dispose())
+      materials.chassisMaterial.dispose()
+      materials.collarMaterial.dispose()
+      materials.inlayMaterials.forEach((m) => m.dispose())
     }
-  }, [brushedTextures, shadowTex, sculptureParts, materials])
+  }, [textures, shadowTex, assembly, materials])
 
+  // Animation Loop: Camera choreography, optical glow pulsing, and cursor parallax
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05)
     const time = state.clock.getElapsedTime()
@@ -225,169 +234,175 @@ function ArchitecturalSculptureScene({
       fitGroupRef.current.scale.setScalar(responsiveFitScale)
     }
 
+    // Determine target phase index (continuous fractional 0..5)
     const rawScroll = THREE.MathUtils.clamp(
       scrollProgressRef ? scrollProgressRef.current : scrollProgress,
       0,
       1
     )
-    const pinnedU = MILESTONE_CURVE_PARAMS[activePhase] ?? MILESTONE_CURVE_PARAMS[0]
-    const mappedScrollU = THREE.MathUtils.lerp(
-      MILESTONE_CURVE_PARAMS[0],
-      MILESTONE_CURVE_PARAMS[MILESTONE_CURVE_PARAMS.length - 1],
-      rawScroll
-    )
-    const targetU = isPhasePinnedRef?.current ? pinnedU : mappedScrollU
+    const scrollPhaseF = rawScroll * 5.0
+    const targetPhaseF = isPhasePinnedRef?.current ? activePhase : scrollPhaseF
 
-    smoothedProgressRef.current = THREE.MathUtils.damp(
-      smoothedProgressRef.current,
-      targetU,
-      5.5,
+    smoothedPhaseRef.current = THREE.MathUtils.damp(
+      smoothedPhaseRef.current,
+      targetPhaseF,
+      5.2,
       dt
     )
-    const u = smoothedProgressRef.current
-    progressionUniforms.current.uActiveU.value = u
+    const pF = smoothedPhaseRef.current
 
-    const continuousPhaseF = THREE.MathUtils.clamp(
-      isPhasePinnedRef?.current ? activePhase : rawScroll * 4,
-      0,
-      4
+    // Camera viewpoint interpolation across 6 gallery targets
+    const lowerIdx = Math.floor(pF)
+    const upperIdx = Math.min(PRECISION_CAMERA_TARGETS.length - 1, lowerIdx + 1)
+    const blend = pF - lowerIdx
+
+    const tLower = PRECISION_CAMERA_TARGETS[lowerIdx] || PRECISION_CAMERA_TARGETS[0]
+    const tUpper = PRECISION_CAMERA_TARGETS[upperIdx] || tLower
+
+    const targetCamPos = new THREE.Vector3(
+      THREE.MathUtils.lerp(tLower.pos[0], tUpper.pos[0], blend),
+      THREE.MathUtils.lerp(tLower.pos[1], tUpper.pos[1], blend),
+      THREE.MathUtils.lerp(tLower.pos[2], tUpper.pos[2], blend)
     )
-    const idxA = Math.min(4, Math.floor(continuousPhaseF))
-    const idxB = Math.min(4, idxA + 1)
-    const blendT = continuousPhaseF - idxA
-    const smoothT = blendT * blendT * (3 - 2 * blendT)
-    const camA = PHASE_CAMERA_TARGETS[idxA]
-    const camB = PHASE_CAMERA_TARGETS[idxB]
 
+    const targetLookAt = new THREE.Vector3(
+      THREE.MathUtils.lerp(tLower.lookAt[0], tUpper.lookAt[0], blend),
+      THREE.MathUtils.lerp(tLower.lookAt[1], tUpper.lookAt[1], blend),
+      THREE.MathUtils.lerp(tLower.lookAt[2], tUpper.lookAt[2], blend)
+    )
+
+    // Subtle cursor parallax
     const mx = mousePosRef.current.x
     const my = mousePosRef.current.y
+    targetCamPos.x += mx * 0.32
+    targetCamPos.y += my * 0.22
 
-    // Scale orbital offset gently on compact viewports so camera angle shifts without crowding margins
-    const camOrbitScale = Math.min(1.0, responsiveFitScale * 1.15)
-    const desiredCamX =
-      THREE.MathUtils.lerp(camA.pos[0], camB.pos[0], smoothT) * camOrbitScale + mx * 0.28
-    const desiredCamY =
-      THREE.MathUtils.lerp(camA.pos[1], camB.pos[1], smoothT) * camOrbitScale -
-      my * 0.18 +
-      Math.sin(time * 0.42) * 0.022
-    const desiredCamZ = THREE.MathUtils.lerp(camA.pos[2], camB.pos[2], smoothT)
-
-    state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, desiredCamX, 4.6, dt)
-    state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, desiredCamY, 4.6, dt)
-    state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, desiredCamZ, 4.6, dt)
-
-    const desiredLookX =
-      THREE.MathUtils.lerp(camA.lookAt[0], camB.lookAt[0], smoothT) * camOrbitScale + mx * 0.09
-    const desiredLookY =
-      THREE.MathUtils.lerp(camA.lookAt[1], camB.lookAt[1], smoothT) * camOrbitScale - my * 0.06
-    const desiredLookZ = THREE.MathUtils.lerp(camA.lookAt[2], camB.lookAt[2], smoothT)
-
-    camLookAtRef.current.x = THREE.MathUtils.damp(camLookAtRef.current.x, desiredLookX, 5.0, dt)
-    camLookAtRef.current.y = THREE.MathUtils.damp(camLookAtRef.current.y, desiredLookY, 5.0, dt)
-    camLookAtRef.current.z = THREE.MathUtils.damp(camLookAtRef.current.z, desiredLookZ, 5.0, dt)
+    state.camera.position.lerp(targetCamPos, 0.06)
+    camLookAtRef.current.lerp(targetLookAt, 0.06)
     state.camera.lookAt(camLookAtRef.current)
 
+    // Gentle sculpture idle breath rotation
     if (masterGroupRef.current) {
-      const targetYaw =
-        THREE.MathUtils.lerp(camA.sculptureYaw, camB.sculptureYaw, smoothT) +
-        mx * 0.13 +
-        Math.sin(time * 0.34) * 0.018
-      const targetPitch =
-        THREE.MathUtils.lerp(camA.sculpturePitch, camB.sculpturePitch, smoothT) -
-        my * 0.09 +
-        Math.cos(time * 0.28) * 0.014
+      const targetYaw = THREE.MathUtils.lerp(tLower.sculptureYaw, tUpper.sculptureYaw, blend)
+      const targetPitch = THREE.MathUtils.lerp(tLower.sculpturePitch, tUpper.sculpturePitch, blend)
+      const idleYaw = Math.sin(time * 0.35) * 0.02
+      const idlePitch = Math.cos(time * 0.28) * 0.015
 
       masterGroupRef.current.rotation.y = THREE.MathUtils.damp(
         masterGroupRef.current.rotation.y,
-        targetYaw,
-        4.8,
+        targetYaw + idleYaw + mx * 0.04,
+        4.0,
         dt
       )
       masterGroupRef.current.rotation.x = THREE.MathUtils.damp(
         masterGroupRef.current.rotation.x,
-        targetPitch,
-        4.8,
+        targetPitch + idlePitch - my * 0.03,
+        4.0,
         dt
       )
-      masterGroupRef.current.position.y = Math.sin(time * 0.55) * 0.018
     }
 
-    if (glidingLightRef.current) {
-      const smp = sculptureParts.spine.sampleArcU(u)
-      lightTargetPosRef.current
-        .copy(smp.pos)
-        .addScaledVector(smp.normal, 0.34)
-        .addScaledVector(smp.binormal, 0.12)
-      if (masterGroupRef.current) {
-        masterGroupRef.current.updateMatrixWorld()
-        masterGroupRef.current.localToWorld(lightTargetPosRef.current)
-      } else {
-        lightTargetPosRef.current.multiplyScalar(responsiveFitScale)
-      }
-      glidingLightRef.current.position.copy(lightTargetPosRef.current)
-      glidingLightRef.current.intensity = 0.70 + Math.sin(time * 1.4) * 0.10
-    }
-
-    for (let i = 0; i < materials.opticalInlayMats.length; i++) {
-      const mat = materials.opticalInlayMats[i]
-      const targetLevel = i === activePhase ? 1.0 : i < activePhase ? 0.45 : 0.0
-      milestoneCoreLevelsRef.current[i] = THREE.MathUtils.damp(
-        milestoneCoreLevelsRef.current[i],
-        targetLevel,
-        6.5,
-        dt
+    // Dynamic Gliding Spotlight tracks the active form's center
+    if (glidingLightRef.current && assembly.centerPoints[activePhase]) {
+      const activeCenter = assembly.centerPoints[activePhase]
+      const lightDest = new THREE.Vector3(
+        activeCenter.x,
+        activeCenter.y + 0.65,
+        activeCenter.z + 1.25
       )
-      const lvl = milestoneCoreLevelsRef.current[i]
-      if (lvl >= 0.45) {
-        const k = (lvl - 0.45) / 0.55
-        mat.color.lerpColors(COLOR_DONE_ALBEDO, COLOR_ACTIVE_ALBEDO, k)
-        mat.emissive.lerpColors(COLOR_DONE_EMISSIVE, COLOR_ACTIVE_EMISSIVE, k)
-      } else {
-        const k = lvl / 0.45
-        mat.color.lerpColors(COLOR_IDLE_ALBEDO, COLOR_DONE_ALBEDO, k)
-        mat.emissive.lerpColors(COLOR_IDLE_EMISSIVE, COLOR_DONE_EMISSIVE, k)
-      }
-      mat.emissiveIntensity = 0.05 + lvl * 0.42
+      glidingLightRef.current.position.lerp(lightDest, 0.08)
     }
+
+    // Update Optical Inlays Luminescence & Sine Pulse
+    const pulseFactor = 0.5 + 0.5 * Math.sin(time * 3.2)
+    materials.inlayMaterials.forEach((mat, idx) => {
+      const isCurrent = idx === activePhase
+      const isPast = idx < activePhase
+
+      if (isCurrent) {
+        mat.color.lerp(COLOR_ACTIVE_INLAY, 0.12)
+        mat.emissive.lerp(COLOR_ACTIVE_EMISSIVE, 0.12)
+        mat.emissiveIntensity = THREE.MathUtils.lerp(1.4, 2.2, pulseFactor)
+      } else if (isPast) {
+        mat.color.lerp(COLOR_DONE_INLAY, 0.12)
+        mat.emissive.lerp(COLOR_DONE_EMISSIVE, 0.12)
+        mat.emissiveIntensity = 0.35
+      } else {
+        mat.color.lerp(COLOR_IDLE_INLAY, 0.12)
+        mat.emissive.lerp(COLOR_IDLE_EMISSIVE, 0.12)
+        mat.emissiveIntensity = 0.12
+      }
+    })
   })
 
   return (
     <>
-      <LuxuryStudioLightingRig glidingLightRef={glidingLightRef} />
+      <PrecisionStudioLightingRig glidingLightRef={glidingLightRef} />
 
-      <group ref={fitGroupRef} scale={responsiveFitScale}>
-        <group ref={masterGroupRef} position={[0, 0.02, 0]}>
-          {/* 1. Primary Unbroken Brushed Champagne-Gold Architectural Sculpture */}
-          <mesh
-            geometry={sculptureParts.mainBodyGeo}
-            material={materials.primaryChampagneMat}
-          />
+      <group ref={fitGroupRef} position={[0, 0, 0]}>
+        <group ref={masterGroupRef}>
+          {/* 1. Six Precision Monolithic Forms with Recessed Chronometer Inlays */}
+          {ARCHITECTURAL_FORMS.map((form, idx) => {
+            const isHovered = hoveredIndex === idx
+            const isActive = activePhase === idx
 
-          {/* 2. Six Subtle Integrated Architectural Index Inlays */}
-          {sculptureParts.milestoneAssemblies.map((assembly, idx) => (
-            <group
-              key={`milestone-${idx}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                onPhaseSelect?.(idx)
-              }}
-              onPointerOver={() => {
-                document.body.style.cursor = 'pointer'
-              }}
-              onPointerOut={() => {
-                document.body.style.cursor = 'auto'
-              }}
-            >
-              <mesh geometry={assembly.rimBevel} material={materials.warmBronzeBevelMat} />
-              <mesh geometry={assembly.opticalInlay} material={materials.opticalInlayMats[idx]} />
-            </group>
+            return (
+              <group
+                key={form.number}
+                onPointerOver={(e) => {
+                  e.stopPropagation()
+                  setHoveredIndex(idx)
+                  document.body.style.cursor = 'pointer'
+                }}
+                onPointerOut={(e) => {
+                  e.stopPropagation()
+                  setHoveredIndex((curr) => (curr === idx ? null : curr))
+                  document.body.style.cursor = 'auto'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (onPhaseSelect) onPhaseSelect(idx)
+                }}
+              >
+                {/* Main Machined Solid Chassis */}
+                <mesh
+                  geometry={assembly.chassisGeometries[idx]}
+                  material={materials.chassisMaterial}
+                  castShadow
+                  receiveShadow
+                  scale={isHovered ? 1.015 : 1.0}
+                />
+
+                {/* Recessed Antique Brass Chronometer Optical Inlay Channel */}
+                <mesh
+                  geometry={assembly.inlayGeometries[idx]}
+                  material={materials.inlayMaterials[idx]}
+                  scale={isActive ? 1.008 : 1.0}
+                />
+              </group>
+            )
+          })}
+
+          {/* 2. Five Dark Smoked Titanium Interlocking Connector Collars */}
+          {assembly.collarGeometries.map((geo, idx) => (
+            <mesh
+              key={`collar-${idx}`}
+              geometry={geo}
+              material={materials.collarMaterial}
+              castShadow
+            />
           ))}
 
-          {/* 3. Soft Gallery Contact Shadow */}
+          {/* 3. Soft Studio Gallery Contact Shadow Plane */}
           {shadowTex && (
-            <mesh position={[0, -1.48, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[6.0, 2.7]} />
-              <meshBasicMaterial map={shadowTex} transparent opacity={0.56} depthWrite={false} />
+            <mesh position={[0, -1.65, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[6.4, 3.2]} />
+              <meshBasicMaterial
+                map={shadowTex}
+                transparent
+                opacity={0.58}
+                depthWrite={false}
+              />
             </mesh>
           )}
         </group>
@@ -397,7 +412,7 @@ function ArchitecturalSculptureScene({
 }
 
 // ---------------------------------------------------------------------------
-// Master Lifecycle 3D Gallery Stage Wrapper
+// Master Lifecycle 3D Gallery Stage Container
 // ---------------------------------------------------------------------------
 export default function LifecycleRibbon3D({
   activePhase,
@@ -425,6 +440,7 @@ export default function LifecycleRibbon3D({
     const handlePointerLeave = () => {
       mousePosRef.current.x = 0
       mousePosRef.current.y = 0
+      document.body.style.cursor = 'auto'
     }
 
     el.addEventListener('pointermove', handlePointerMove, { passive: true })
@@ -437,10 +453,12 @@ export default function LifecycleRibbon3D({
     }
   }, [])
 
+  const currentForm = ARCHITECTURAL_FORMS[activePhase] || ARCHITECTURAL_FORMS[0]
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[440px] sm:h-[500px] lg:h-[560px] my-10 sm:my-14 overflow-hidden rounded-2xl select-none"
+      className="relative w-full h-[460px] sm:h-[520px] lg:h-[580px] my-10 sm:my-14 overflow-hidden rounded-2xl select-none"
       style={{
         background:
           'radial-gradient(ellipse 75% 65% at 50% 50%, #151722 0%, #0A0B0E 100%)',
@@ -460,30 +478,53 @@ export default function LifecycleRibbon3D({
       />
 
       {/* Refined Editorial Header */}
-      <div className="absolute top-5 left-6 right-6 z-10 flex items-center justify-between text-xs font-mono tracking-widest uppercase pointer-events-none">
+      <div className="absolute top-5 left-6 right-6 z-10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono tracking-widest uppercase pointer-events-none">
         <div className="flex items-center gap-2.5" style={{ color: '#ECC87A' }}>
           <span className="w-2 h-2 rounded-full bg-[#ECC87A] animate-pulse" />
-          <span className="font-semibold tracking-[0.2em]">THE ENGINEERING JOURNEY</span>
+          <span className="font-semibold tracking-[0.2em]">THE PRECISION ARCHITECTURE</span>
         </div>
-        <div className="text-[11px] text-stone-400/80 font-mono">
-          PHASE // 0{activePhase + 1} ACTIVE
+        <div className="text-[11px] text-stone-300 font-mono tracking-[0.16em]">
+          PHASE // {currentForm.number} OF 06 ACTIVE — {currentForm.name.toUpperCase()}
+        </div>
+      </div>
+
+      {/* Bottom Subtle Navigation Indicator */}
+      <div className="absolute bottom-4 left-6 right-6 z-10 flex items-center justify-between pointer-events-none text-[10px] font-mono tracking-[0.18em] text-stone-400">
+        <span className="hidden sm:inline opacity-70">
+          INTERACTIVE ARCHITECTURE // HOVER OR CLICK FORMS TO INSPECT
+        </span>
+        <div className="flex items-center gap-1.5 ml-auto">
+          {ARCHITECTURAL_FORMS.map((f, idx) => (
+            <button
+              key={f.number}
+              type="button"
+              aria-label={`Select phase ${f.number}`}
+              onClick={() => onPhaseSelect && onPhaseSelect(idx)}
+              className="pointer-events-auto transition-all duration-300 rounded-full"
+              style={{
+                width: idx === activePhase ? '18px' : '6px',
+                height: '6px',
+                backgroundColor: idx === activePhase ? '#ECC87A' : 'rgba(255, 255, 255, 0.25)',
+              }}
+            />
+          ))}
         </div>
       </div>
 
       {/* 3D WebGL Canvas */}
       <Canvas
-        camera={{ position: [-1.72, -0.28, 5.48], fov: 34 }}
+        camera={{ position: [-2.1, -0.42, 5.6], fov: 34 }}
         gl={{
           antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.0,
+          toneMappingExposure: 1.05,
         }}
         dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.75) : 1}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       >
-        <ArchitecturalSculptureScene
+        <PrecisionArchitectureScene
           activePhase={activePhase}
           scrollProgress={scrollProgress}
           scrollProgressRef={scrollProgressRef}

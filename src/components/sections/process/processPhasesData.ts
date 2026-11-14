@@ -48,106 +48,128 @@ export interface ProcessCtaConfig {
 }
 
 /**
- * The Five-Stage Client-Facing Delivery Process for QUISTER TECHNOLOGIES
- * Simple, premium, transparent and honest.
+ * The Six-Stage Client-Facing Engineering Lifecycle for QUISTER TECHNOLOGIES
+ * Simple, premium, transparent, and honest.
  */
 export const PROCESS_STAGES: ProcessStage[] = [
   {
-    id: 'discover',
+    id: 'discovery',
     number: '01',
     eyebrow: 'UNDERSTAND THE PROBLEM.',
     title: 'Discovery & Strategy',
     description:
-      'We begin by understanding your business, audience, requirements, existing systems and project objectives before deciding how to build.',
+      'We begin by understanding your business, target audience, technical requirements, existing infrastructure, and strategic objectives before determining the optimal engineering approach.',
     whatYouReceive: [
-      'Initial discovery discussion.',
-      'Requirements and scope definition.',
-      'Technical recommendations.',
-      'Preliminary timeline and estimate.',
+      'Comprehensive discovery consultation.',
+      'Requirements & product scope definition.',
+      'System architecture & tech stack recommendations.',
+      'Milestone roadmap, timeline & transparent estimates.',
     ],
     whatWeNeed: [
-      'Your business goals.',
-      'Key requirements and priorities.',
-      'Budget expectations.',
-      'Relevant existing materials and references.',
+      'Core business goals & target metrics.',
+      'Key feature priorities and user constraints.',
+      'Budget expectations and delivery horizons.',
+      'Relevant brand materials, API docs & benchmarks.',
+    ],
+  },
+  {
+    id: 'architecture',
+    number: '02',
+    eyebrow: 'PLAN BEFORE WE BUILD.',
+    title: 'Architecture & Planning',
+    description:
+      'We establish the technical foundations, data schemas, security perimeters, and service contracts before writing production code, mitigating risks early.',
+    whatYouReceive: [
+      'Comprehensive system architecture diagram.',
+      'Database schema & entity relationship models.',
+      'API contracts & integration specifications.',
+      'Technical sprint plan & dependency map.',
+    ],
+    whatWeNeed: [
+      'Third-party software & credential access.',
+      'Compliance, security, or compliance constraints.',
+      'Expected data scale and throughput projections.',
+      'Sign-off on chosen architecture & infrastructure.',
     ],
   },
   {
     id: 'design',
-    number: '02',
-    eyebrow: 'PLAN BEFORE WE BUILD.',
-    title: 'Experience & Architecture',
+    number: '03',
+    eyebrow: 'EXPERIENCE CRAFT & CLARITY.',
+    title: 'Experience & Interface Design',
     description:
-      'We define how the product works before development begins. User journeys, interface design and technical architecture are shaped around your actual requirements.',
+      'We shape user journeys, interactive wireframes, and production design systems with obsessive typographic hierarchy and tactile interactive polish.',
     whatYouReceive: [
-      'User flows and wireframes.',
-      'Interface designs and prototypes, where applicable.',
-      'Technical architecture.',
-      'Defined implementation plan.',
+      'Interactive Figma prototypes & wireframes.',
+      'Component library & design token system.',
+      'Micro-interactions & animation choreography.',
+      'Responsive multi-viewport screen layouts.',
     ],
     whatWeNeed: [
-      'Timely feedback.',
-      'Design preferences.',
-      'Required content and brand assets.',
-      'Approval of the agreed direction.',
+      'Consolidated design feedback rounds.',
+      'Brand guidelines, vector assets & typography licenses.',
+      'Key customer persona feedback & copy inputs.',
+      'Design direction approval before engineering sprint.',
     ],
   },
   {
-    id: 'develop',
-    number: '03',
+    id: 'development',
+    number: '04',
     eyebrow: 'BUILD WITH PURPOSE.',
     title: 'Development & Integration',
     description:
-      'We develop the product through structured implementation, integrating the frontend, backend, databases and third-party services required by the approved scope.',
+      'We craft high-performance code with modular React/TypeScript frontends, resilient backend architectures, real-time sync, and scalable database layers.',
     whatYouReceive: [
-      'Working development builds.',
-      'Feature implementation updates.',
-      'Relevant technical documentation.',
-      'Opportunities to review progress.',
+      'Bi-weekly staging build deployments.',
+      'Transparent git commits & progress updates.',
+      'Modular, type-safe, and self-documenting code.',
+      'Direct staging review links with instant preview.',
     ],
     whatWeNeed: [
-      'Consolidated feedback.',
-      'Access to necessary third-party services.',
-      'Required content and test information.',
-      'Timely review and approvals.',
+      'Timely sprint feedback and validation.',
+      'Sandbox API credentials & test accounts.',
+      'Domain DNS or cloud console access when required.',
+      'Sprint review approvals.',
     ],
   },
   {
-    id: 'launch',
-    number: '04',
-    eyebrow: 'READY FOR THE REAL WORLD.',
-    title: 'Testing & Deployment',
-    description:
-      'We validate the agreed functionality, resolve identified issues and prepare the application or website for its production release.',
-    whatYouReceive: [
-      'Functional and responsive testing.',
-      'Release preparation.',
-      'Production deployment.',
-      'Agreed source-code and documentation handover.',
-    ],
-    whatWeNeed: [
-      'Final approvals.',
-      'Required hosting, domain and store accounts.',
-      'Production content and credentials through secure channels.',
-    ],
-  },
-  {
-    id: 'evolve',
+    id: 'testing',
     number: '05',
-    eyebrow: 'BEYOND THE LAUNCH.',
-    title: 'Support & Improvement',
+    eyebrow: 'RIGOROUS QUALITY & ASSURANCE.',
+    title: 'Testing & Quality Assurance',
     description:
-      'After release, we can continue supporting your product through agreed maintenance, improvements, updates and technical enhancements.',
+      'Every interaction, endpoint, and edge case undergoes rigorous automated and manual validation across devices, screen sizes, network conditions, and browsers.',
     whatYouReceive: [
-      'Post-launch stabilization.',
-      'Issue resolution during agreed support period.',
-      'Planned technical updates and feature additions.',
-      'Documentation updates.',
+      'Cross-browser and cross-device audit reports.',
+      'Nyquist validation & edge-case test coverage.',
+      'Performance, Core Web Vitals & accessibility benchmarks.',
+      'Security review & vulnerability scan summary.',
     ],
     whatWeNeed: [
-      'Documented issue reports.',
-      'Clear enhancement priorities.',
-      'Continued access where required.',
+      'Client UAT test case sign-off.',
+      'Real-world test data sets or staging accounts.',
+      'Consolidated bug review & prioritization.',
+      'Final production launch authorization.',
+    ],
+  },
+  {
+    id: 'deployment',
+    number: '06',
+    eyebrow: 'READY FOR THE REAL WORLD.',
+    title: 'Deployment & Ongoing Support',
+    description:
+      'We execute zero-downtime production cutovers, transfer full code ownership, and provide proactive post-launch monitoring and continuous enhancement.',
+    whatYouReceive: [
+      'Zero-downtime production deployment.',
+      'Full repository transfer & IP documentation.',
+      'CI/CD automation pipelines & backup setup.',
+      '30-day post-launch warranty & ongoing care plans.',
+    ],
+    whatWeNeed: [
+      'Production hosting & DNS provider access.',
+      'Payment gateway & live merchant accounts.',
+      'Final launch schedule coordination.',
+      'Sign-off on project handover.',
     ],
   },
 ]

@@ -54,7 +54,7 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
         onUpdate: (self) => {
           scrollProgressRef.current = self.progress
           if (isInteractingRef.current) return
-          const phaseIndex = Math.min(4, Math.max(0, Math.floor(self.progress * 5)))
+          const phaseIndex = Math.min(5, Math.max(0, Math.floor(self.progress * 6)))
           setActivePhase((prev) => (prev === phaseIndex ? prev : phaseIndex))
         },
       })
@@ -165,10 +165,10 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
               className="font-display font-light leading-[1.04] tracking-[-0.015em]"
               style={{
                 fontSize: 'clamp(3.2rem, 5.5vw, 5rem)',
-                maxWidth: '680px',
+                maxWidth: '720px',
               }}
             >
-              <span style={{ color: '#14161C' }}>From ambition </span>
+              <span style={{ color: '#14161C' }}>How We Turn Ambition </span>
               <br className="hidden sm:inline" />
               <span
                 className="italic font-normal"
@@ -178,7 +178,7 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                to something real.
+                Into Production.
               </span>
             </h2>
           </div>
