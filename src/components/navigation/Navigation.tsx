@@ -85,6 +85,8 @@ export default function Navigation({ currentRoute }: NavigationProps) {
     navigateTo(item.route, item.hash)
   }
 
+  const isLightPage = currentRoute === '/process'
+
   return (
     <>
       <header
@@ -92,13 +94,23 @@ export default function Navigation({ currentRoute }: NavigationProps) {
         role="banner"
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'py-3.5 backdrop-blur-xl border-b border-white/5'
+            ? 'py-3.5 backdrop-blur-xl'
             : 'py-5'
         }`}
         style={{
           background: scrolled
-            ? 'rgba(11, 12, 16, 0.88)'
+            ? isLightPage
+              ? 'rgba(248, 245, 238, 0.92)'
+              : 'rgba(11, 12, 16, 0.88)'
             : 'transparent',
+          borderBottom: scrolled
+            ? isLightPage
+              ? '1px solid rgba(20, 22, 28, 0.08)'
+              : '1px solid rgba(255, 255, 255, 0.05)'
+            : '1px solid transparent',
+          boxShadow: scrolled && isLightPage
+            ? '0 10px 30px -10px rgba(20, 22, 28, 0.06)'
+            : 'none',
         }}
       >
         <div className="container-wide flex items-center justify-between">
@@ -125,12 +137,16 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                   width: '38px',
                   height: '38px',
                   borderRadius: '10px',
-                  border: '1px solid rgba(216, 180, 109, 0.4)',
+                  border: isLightPage
+                    ? '1px solid rgba(181, 143, 80, 0.55)'
+                    : '1px solid rgba(216, 180, 109, 0.4)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: 'radial-gradient(circle at 35% 35%, #181A22 0%, #0A0C0E 100%)',
-                  boxShadow: '0 0 16px rgba(216, 180, 109, 0.16)',
+                  boxShadow: isLightPage
+                    ? '0 2px 10px rgba(154, 122, 74, 0.20)'
+                    : '0 0 16px rgba(216, 180, 109, 0.16)',
                   position: 'relative',
                   overflow: 'hidden',
                   transition: 'all 350ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -152,7 +168,8 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                     fontSize: '0.625rem',
                     letterSpacing: '0.24em',
                     textTransform: 'uppercase',
-                    color: 'var(--color-champagne)',
+                    color: isLightPage ? '#9A7A4A' : 'var(--color-champagne)',
+                    fontWeight: 600,
                     transition: 'opacity 300ms',
                   }}
                   className="group-hover:opacity-85"
@@ -166,7 +183,8 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                     fontWeight: 600,
                     letterSpacing: '0.16em',
                     textTransform: 'uppercase',
-                    color: 'var(--color-ivory)',
+                    color: isLightPage ? '#14161C' : 'var(--color-ivory)',
+                    transition: 'color 300ms',
                   }}
                 >
                   TECHNOLOGIES
@@ -175,7 +193,16 @@ export default function Navigation({ currentRoute }: NavigationProps) {
             </a>
 
             {/* Studio Time Indicator with Live IST Clock */}
-            <div className="hidden xl:flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.2em] text-champagne/80 pl-4 border-l border-white/10">
+            <div
+              className="hidden xl:flex items-center gap-2 font-mono text-[0.625rem] tracking-[0.2em] pl-4 transition-colors duration-300"
+              style={{
+                borderLeft: isLightPage
+                  ? '1px solid rgba(20, 22, 28, 0.14)'
+                  : '1px solid rgba(255, 255, 255, 0.10)',
+                color: isLightPage ? '#7A5B28' : 'rgba(201, 164, 102, 0.85)',
+                fontWeight: 500,
+              }}
+            >
               <span
                 style={{
                   width: '6px',
@@ -185,8 +212,9 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                   boxShadow: '0 0 8px rgba(16, 185, 129, 0.9)',
                   display: 'inline-block',
                 }}
+                className="animate-pulse"
               />
-              <span>STUDIO // {timeString || '22:46 IST'}</span>
+              <span>STUDIO // {timeString || '12:00 IST'}</span>
             </div>
           </div>
 
@@ -196,7 +224,23 @@ export default function Navigation({ currentRoute }: NavigationProps) {
             <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-7 xl:gap-8">
               {navLinks.map((link) => {
                 const isActive = link.route === currentRoute && !link.hash
-                const href = link.hash ? `${link.route === '/' ? '' : link.route}/${link.hash}`.replace('//', '/') : link.route
+                const href = link.hash
+                  ? `${link.route === '/' ? '' : link.route}/${link.hash}`.replace('//', '/')
+                  : link.route
+
+                const defaultColor = isLightPage
+                  ? isActive
+                    ? '#9A7A4A'
+                    : 'rgba(20, 22, 28, 0.72)'
+                  : isActive
+                  ? 'var(--color-champagne)'
+                  : 'rgba(243, 239, 232, 0.72)'
+
+                const hoverColor = isLightPage
+                  ? '#14161C'
+                  : isActive
+                  ? 'var(--color-champagne-light)'
+                  : 'var(--color-ivory)'
 
                 return (
                   <a
@@ -219,16 +263,14 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                       letterSpacing: '0.16em',
                       textTransform: 'uppercase',
                       textDecoration: 'none',
-                      color: isActive ? 'var(--color-champagne)' : 'rgba(243, 239, 232, 0.72)',
+                      color: defaultColor,
                       transition: 'color 300ms',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = isActive ? 'var(--color-champagne-light)' : 'var(--color-ivory)'
+                      e.currentTarget.style.color = hoverColor
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = isActive
-                        ? 'var(--color-champagne)'
-                        : 'rgba(243, 239, 232, 0.72)'
+                      e.currentTarget.style.color = defaultColor
                     }}
                   >
                     {link.label}
@@ -239,8 +281,8 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                         bottom: 0,
                         left: 0,
                         width: isActive ? '100%' : '0%',
-                        height: '1px',
-                        background: 'var(--color-champagne)',
+                        height: '1.5px',
+                        background: isLightPage ? '#9A7A4A' : 'var(--color-champagne)',
                         transition: 'width 300ms cubic-bezier(0.16, 1, 0.3, 1)',
                       }}
                       className="group-hover:w-full"
@@ -265,12 +307,32 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                   letterSpacing: '0.13em',
                   fontWeight: 600,
                   borderRadius: '9999px',
-                  backgroundColor: 'var(--color-champagne)',
-                  color: 'var(--color-near-black)',
+                  backgroundColor: isLightPage ? '#14161C' : 'var(--color-champagne)',
+                  color: isLightPage ? '#F8F5EE' : 'var(--color-near-black)',
+                  border: isLightPage ? '1px solid rgba(20, 22, 28, 0.20)' : 'none',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  boxShadow: '0 4px 20px rgba(215, 179, 106, 0.28)',
+                  boxShadow: isLightPage
+                    ? '0 4px 16px rgba(20, 22, 28, 0.15)'
+                    : '0 4px 20px rgba(215, 179, 106, 0.28)',
+                  transition: 'all 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+                onMouseEnter={(e) => {
+                  if (isLightPage) {
+                    e.currentTarget.style.backgroundColor = '#9A7A4A'
+                    e.currentTarget.style.color = '#FFFFFF'
+                  } else {
+                    e.currentTarget.style.backgroundColor = 'var(--color-champagne-light)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isLightPage) {
+                    e.currentTarget.style.backgroundColor = '#14161C'
+                    e.currentTarget.style.color = '#F8F5EE'
+                  } else {
+                    e.currentTarget.style.backgroundColor = 'var(--color-champagne)'
+                  }
                 }}
               >
                 <span className="sm:hidden">START</span>
@@ -283,15 +345,41 @@ export default function Navigation({ currentRoute }: NavigationProps) {
                 type="button"
                 aria-label="Toggle navigation drawer"
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="hidden sm:flex w-9 h-9 rounded-lg border border-champagne/30 items-center justify-center text-champagne hover:border-champagne/80 hover:bg-champagne/10 transition-all cursor-pointer"
+                className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center transition-all cursor-pointer"
                 style={{
-                  background: 'rgba(20, 16, 28, 0.45)',
+                  border: isLightPage
+                    ? '1px solid rgba(20, 22, 28, 0.15)'
+                    : '1px solid rgba(201, 164, 102, 0.35)',
+                  background: isLightPage
+                    ? 'rgba(255, 255, 255, 0.85)'
+                    : 'rgba(20, 16, 28, 0.45)',
+                  color: isLightPage ? '#14161C' : 'var(--color-champagne)',
                   backdropFilter: 'blur(8px)',
+                  boxShadow: isLightPage ? '0 2px 8px rgba(20, 22, 28, 0.04)' : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = isLightPage ? '#9A7A4A' : 'var(--color-champagne)'
+                  e.currentTarget.style.backgroundColor = isLightPage ? '#FFFFFF' : 'rgba(201, 164, 102, 0.15)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = isLightPage
+                    ? 'rgba(20, 22, 28, 0.15)'
+                    : 'rgba(201, 164, 102, 0.35)'
+                  e.currentTarget.style.backgroundColor = isLightPage
+                    ? 'rgba(255, 255, 255, 0.85)'
+                    : 'rgba(20, 16, 28, 0.45)'
                 }}
               >
                 <div className="grid grid-cols-3 gap-1">
                   {[...Array(9)].map((_, i) => (
-                    <span key={i} className="w-1 h-1 rounded-full bg-current opacity-85" />
+                    <span
+                      key={i}
+                      className="w-1 h-1 rounded-full transition-colors duration-200"
+                      style={{
+                        backgroundColor: isLightPage ? '#14161C' : 'currentColor',
+                        opacity: 0.85,
+                      }}
+                    />
                   ))}
                 </div>
               </button>
@@ -300,7 +388,7 @@ export default function Navigation({ currentRoute }: NavigationProps) {
 
           {/* Mobile & Tablet menu toggle */}
           <button
-            className="lg:hidden flex flex-col gap-1.5 p-2 ml-2 shrink-0"
+            className="lg:hidden flex flex-col gap-1.5 p-2 ml-2 shrink-0 cursor-pointer"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(!menuOpen)}
@@ -309,19 +397,19 @@ export default function Navigation({ currentRoute }: NavigationProps) {
               style={{
                 display: 'block',
                 width: '24px',
-                height: '1px',
-                background: 'var(--color-ivory)',
-                transition: 'transform 300ms',
+                height: '1.5px',
+                background: isLightPage && !menuOpen ? '#14161C' : 'var(--color-ivory)',
+                transition: 'transform 300ms, background-color 300ms',
                 transformOrigin: 'center',
-                transform: menuOpen ? 'translateY(5px) rotate(45deg)' : 'none',
+                transform: menuOpen ? 'translateY(6px) rotate(45deg)' : 'none',
               }}
             />
             <span
               style={{
                 display: 'block',
                 width: '18px',
-                height: '1px',
-                background: 'var(--color-champagne)',
+                height: '1.5px',
+                background: isLightPage && !menuOpen ? '#9A7A4A' : 'var(--color-champagne)',
                 transition: 'opacity 300ms',
                 opacity: menuOpen ? 0 : 1,
               }}
@@ -330,11 +418,11 @@ export default function Navigation({ currentRoute }: NavigationProps) {
               style={{
                 display: 'block',
                 width: '24px',
-                height: '1px',
-                background: 'var(--color-ivory)',
-                transition: 'transform 300ms',
+                height: '1.5px',
+                background: isLightPage && !menuOpen ? '#14161C' : 'var(--color-ivory)',
+                transition: 'transform 300ms, background-color 300ms',
                 transformOrigin: 'center',
-                transform: menuOpen ? 'translateY(-5px) rotate(-45deg)' : 'none',
+                transform: menuOpen ? 'translateY(-6px) rotate(-45deg)' : 'none',
               }}
             />
           </button>
