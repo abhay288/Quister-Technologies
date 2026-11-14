@@ -321,7 +321,7 @@ export default function OurTeamSection() {
                   color: 'rgba(243, 239, 232, 0.42)',
                 }}
               >
-                QUISTER TECHNOLOGIES // VERIFIED PRESENCE
+                MIND BEHIND QUISTER TECHNOLOGIES // OWNERSHIP
               </span>
 
               <div className="flex items-center gap-6 sm:gap-8">

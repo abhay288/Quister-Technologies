@@ -67,8 +67,8 @@ export const COMPACT_TEAM_CONFIG: CompactTeamConfig = {
     },
   ],
   socialLinks: [
-    { label: 'GitHub', href: 'https://github.com/abhay288/Quister-Technologies' },
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/company/quister-technologies' },
+    { label: 'GitHub', href: 'https://github.com/abhay288' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/abhay-kushwaha-a2a1b21b3/' },
   ],
 }
 

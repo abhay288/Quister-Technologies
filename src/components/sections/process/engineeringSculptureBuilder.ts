@@ -13,7 +13,7 @@ import * as THREE from 'three'
 // - Satin brushed champagne-gold PBR maps & feathered HDR softbox studio dome.
 // ---------------------------------------------------------------------------
 
-export const MILESTONE_CURVE_PARAMS = [0.115, 0.275, 0.44, 0.605, 0.76, 0.90] as const
+export const MILESTONE_CURVE_PARAMS = [0.10, 0.30, 0.50, 0.70, 0.90] as const
 
 export interface CameraPhaseTarget {
   pos: [number, number, number]
@@ -22,15 +22,19 @@ export interface CameraPhaseTarget {
   sculpturePitch: number
 }
 
-// Distinct 3/4 architectural gallery camera viewpoints across phases 01..06
+// Distinct 3/4 architectural gallery camera viewpoints across stages 01..05
 // revealing foreground-over-background spatial overlap cleanly without clipping.
 export const PHASE_CAMERA_TARGETS: readonly CameraPhaseTarget[] = [
-  { pos: [-1.72, -0.28, 5.48], lookAt: [-0.14, -0.06, 0.04], sculptureYaw: 0.16, sculpturePitch: -0.05 },
-  { pos: [-0.92, 0.96, 5.18], lookAt: [-0.08, 0.14, -0.06], sculptureYaw: 0.08, sculpturePitch: 0.07 },
-  { pos: [0.18, 1.06, 4.92], lookAt: [0.04, 0.10, -0.14], sculptureYaw: -0.04, sculpturePitch: 0.10 },
-  { pos: [1.14, -0.44, 4.96], lookAt: [0.08, -0.14, 0.06], sculptureYaw: -0.16, sculpturePitch: 0.03 },
-  { pos: [1.78, 0.34, 5.18], lookAt: [0.14, 0.02, 0.08], sculptureYaw: -0.20, sculpturePitch: -0.04 },
-  { pos: [0.36, 0.44, 5.52], lookAt: [0.02, 0.04, 0.0], sculptureYaw: -0.04, sculpturePitch: -0.03 },
+  // 01 — Discover: Left foreground lead & entrance arch
+  { pos: [-1.75, -0.25, 5.40], lookAt: [-0.15, -0.06, 0.04], sculptureYaw: 0.16, sculpturePitch: -0.05 },
+  // 02 — Design: Cresting upward architectural curve
+  { pos: [-0.85, 0.98, 5.15], lookAt: [-0.06, 0.14, -0.06], sculptureYaw: 0.07, sculpturePitch: 0.08 },
+  // 03 — Develop: Central architectural loop and depth interplay
+  { pos: [0.15, 0.65, 4.90], lookAt: [0.02, 0.02, -0.10], sculptureYaw: -0.06, sculpturePitch: 0.06 },
+  // 04 — Launch: Dynamic descending turn into release
+  { pos: [1.25, -0.38, 5.05], lookAt: [0.10, -0.12, 0.05], sculptureYaw: -0.18, sculpturePitch: 0.02 },
+  // 05 — Evolve: Wide resolved gallery finial sweep
+  { pos: [1.82, 0.42, 5.25], lookAt: [0.15, 0.04, 0.08], sculptureYaw: -0.22, sculpturePitch: -0.04 },
 ]
 
 // Uniform clamped cubic B-spline control points sculpted for generous turn

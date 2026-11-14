@@ -91,7 +91,7 @@ function ArchitecturalSculptureScene({
   const camLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(-0.14, -0.06, 0.04))
   const lightTargetPosRef = useRef<THREE.Vector3>(new THREE.Vector3())
   const smoothedProgressRef = useRef<number>(MILESTONE_CURVE_PARAMS[0])
-  const milestoneCoreLevelsRef = useRef<number[]>([1, 0, 0, 0, 0, 0])
+  const milestoneCoreLevelsRef = useRef<number[]>([1, 0, 0, 0, 0])
 
   const progressionUniforms = useRef<ProgressionUniforms>({
     uActiveU: { value: MILESTONE_CURVE_PARAMS[0] },
@@ -248,12 +248,12 @@ function ArchitecturalSculptureScene({
     progressionUniforms.current.uActiveU.value = u
 
     const continuousPhaseF = THREE.MathUtils.clamp(
-      isPhasePinnedRef?.current ? activePhase : rawScroll * 5,
+      isPhasePinnedRef?.current ? activePhase : rawScroll * 4,
       0,
-      5
+      4
     )
-    const idxA = Math.min(5, Math.floor(continuousPhaseF))
-    const idxB = Math.min(5, idxA + 1)
+    const idxA = Math.min(4, Math.floor(continuousPhaseF))
+    const idxB = Math.min(4, idxA + 1)
     const blendT = continuousPhaseF - idxA
     const smoothT = blendT * blendT * (3 - 2 * blendT)
     const camA = PHASE_CAMERA_TARGETS[idxA]

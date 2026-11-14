@@ -3,6 +3,9 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import LifecycleRibbon3D from './process/LifecycleRibbon3D'
 import ProcessPhasesGrid from './process/ProcessPhasesGrid'
+import ProcessEngagementSection from './process/ProcessEngagementSection'
+import ProcessCommitmentsSection from './process/ProcessCommitmentsSection'
+import ProcessCtaSection from './process/ProcessCtaSection'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -47,7 +50,7 @@ export default function Process() {
         onUpdate: (self) => {
           scrollProgressRef.current = self.progress
           if (isInteractingRef.current) return
-          const phaseIndex = Math.min(5, Math.max(0, Math.floor(self.progress * 6)))
+          const phaseIndex = Math.min(4, Math.max(0, Math.floor(self.progress * 5)))
           setActivePhase((prev) => (prev === phaseIndex ? prev : phaseIndex))
         },
       })
@@ -136,7 +139,7 @@ export default function Process() {
                   fontWeight: 600,
                 }}
               >
-                04 // ENGINEERING LIFECYCLE
+                OUR APPROACH // THE ENGINEERING PROCESS
               </span>
               <div
                 style={{
@@ -157,7 +160,8 @@ export default function Process() {
                 maxWidth: '680px',
               }}
             >
-              <span style={{ color: '#14161C' }}>How We Turn Ambition Into </span>
+              <span style={{ color: '#14161C' }}>From ambition </span>
+              <br className="hidden sm:inline" />
               <span
                 className="italic font-normal"
                 style={{
@@ -166,13 +170,13 @@ export default function Process() {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                Production.
+                to something real.
               </span>
             </h2>
           </div>
 
           {/* Supporting Copy in a separate right-aligned block */}
-          <div style={{ maxWidth: '440px' }}>
+          <div style={{ maxWidth: '460px' }}>
             <p
               className="font-sans text-base md:text-[1.05rem] leading-relaxed"
               style={{
@@ -180,15 +184,16 @@ export default function Process() {
                 fontWeight: 350,
               }}
             >
-              A disciplined, transparent delivery framework designed to reduce risk,
-              improve delivery efficiency and build maintainable digital products.
+              Every successful digital product begins with understanding the problem.
+              We bring together clear planning, thoughtful design and disciplined engineering
+              to turn ideas into dependable products.
             </p>
           </div>
         </div>
 
         {/* =====================================================================
             3D CONTINUOUS METALLIC LIFECYCLE SCULPTURE
-            - Represents 6 progressive stages with active illumination & camera journey
+            - Represents 5 progressive stages with active illumination & camera journey
             - All debug telemetry removed (only editorial label "THE ENGINEERING JOURNEY")
             ===================================================================== */}
         <LifecycleRibbon3D
@@ -199,9 +204,8 @@ export default function Process() {
         />
 
         {/* =====================================================================
-            REFINED SIX PHASE EDITORIAL GRID
-            - 3-column, 2-row layout on desktop
-            - Understated deliverable lines (heavy grey boxes removed)
+            FIVE DELIVERY STAGES (EDITORIAL STACK)
+            - Dual columns: WHAT YOU RECEIVE & WHAT WE NEED FROM YOU
             - Coordinated interactive selection with 3D sculpture
             ===================================================================== */}
         <div ref={contentRef} className="w-full">
@@ -211,6 +215,21 @@ export default function Process() {
             onPhaseHover={handlePhaseHover}
           />
         </div>
+
+        {/* =====================================================================
+            HOW PROJECTS ARE STRUCTURED & OPTIONAL PROOF OF CONCEPT
+            ===================================================================== */}
+        <ProcessEngagementSection />
+
+        {/* =====================================================================
+            OUR PROJECT COMMITMENTS (TRUST GRID) & COLLABORATION GUIDELINES
+            ===================================================================== */}
+        <ProcessCommitmentsSection />
+
+        {/* =====================================================================
+            FINAL PROJECT CTA
+            ===================================================================== */}
+        <ProcessCtaSection />
       </div>
     </section>
   )
