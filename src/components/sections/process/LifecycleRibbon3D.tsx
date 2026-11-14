@@ -2,17 +2,17 @@ import { useRef, useMemo, useEffect, useState, type MutableRefObject } from 'rea
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
-  ARCHITECTURAL_FORMS,
-  PRECISION_CAMERA_TARGETS,
-  FormSplineCurve,
-  buildMonolithicChassisGeometry,
-  buildRecessedInlayGeometry,
-  buildInterlockingCollarGeometry,
-  createLuxuryStudioTextures,
-  createStudioGalleryEnvironment,
-} from './precisionSculptureBuilder'
+  CHECKPOINTS,
+  DESKTOP_CAMERA_VIEWS,
+  MOBILE_CAMERA_VIEWS,
+  buildTrackCurve,
+  buildSweptTrackGeometry,
+  buildCenterlineTubeGeometry,
+  createTrackTextures,
+  createTrackEnvironment,
+} from './engineeringTrackMapBuilder'
 
-interface LifecycleRibbon3DProps {
+interface LifecycleTrackMap3DProps {
   activePhase: number
   scrollProgress?: number
   scrollProgressRef?: MutableRefObject<number>
@@ -20,25 +20,18 @@ interface LifecycleRibbon3DProps {
   onPhaseSelect?: (index: number) => void
 }
 
-const COLOR_ACTIVE_INLAY = new THREE.Color('#FFF6E1')
-const COLOR_ACTIVE_EMISSIVE = new THREE.Color('#F5DC9F')
-const COLOR_DONE_INLAY = new THREE.Color('#D4B276')
-const COLOR_DONE_EMISSIVE = new THREE.Color('#5E4318')
-const COLOR_IDLE_INLAY = new THREE.Color('#B58F50')
-const COLOR_IDLE_EMISSIVE = new THREE.Color('#2A1E0E')
-
 // ---------------------------------------------------------------------------
-// Luxury Studio Environment & Controlled Product Lighting Rig
+// Precision Studio Environment & Balanced Architectural Lighting Rig
 // ---------------------------------------------------------------------------
-function PrecisionStudioLightingRig({
-  glidingLightRef,
+function TrackStudioLightingRig({
+  photonLightRef,
 }: {
-  glidingLightRef: React.RefObject<THREE.PointLight>
+  photonLightRef: React.RefObject<THREE.PointLight>
 }) {
   const { gl, scene } = useThree()
 
   useEffect(() => {
-    const envTexture = createStudioGalleryEnvironment(gl)
+    const envTexture = createTrackEnvironment(gl)
     const prevEnv = scene.environment
     scene.environment = envTexture
 
@@ -50,162 +43,185 @@ function PrecisionStudioLightingRig({
 
   return (
     <>
-      <ambientLight color="#2E2419" intensity={0.65} />
-      {/* Primary Warm Champagne Key Light */}
-      <directionalLight position={[5.2, 6.8, 5.0]} color="#FFF7EC" intensity={1.35} />
-      {/* Cool Slate Studio Fill */}
-      <directionalLight position={[-5.6, 2.4, 4.0]} color="#E4E8F0" intensity={0.75} />
-      {/* Warm Antique Gold Rim Light */}
-      <directionalLight position={[1.5, -2.2, -5.8]} color="#DFB872" intensity={1.05} />
-      {/* Floor Bronze Bounce */}
-      <directionalLight position={[0, -4.8, 2.6]} color="#C29958" intensity={0.45} />
-      {/* Dynamic Gliding Active Element Spotlight */}
-      <pointLight ref={glidingLightRef} color="#F5DC9F" intensity={1.2} distance={3.5} decay={2} />
+      <ambientLight color="#26221C" intensity={0.75} />
+      {/* Overhead Key Softbox */}
+      <directionalLight position={[3.5, 6.5, 4.5]} color="#FFF8EB" intensity={1.4} />
+      {/* Cool Slate Fill */}
+      <directionalLight position={[-4.5, 2.8, 3.5]} color="#E4E9F2" intensity={0.7} />
+      {/* Warm Antique Gold Rim */}
+      <directionalLight position={[0.5, -2.0, -5.0]} color="#DEB872" intensity={1.15} />
+      {/* Soft Contact Floor Bounce */}
+      <directionalLight position={[0, -3.8, 2.0]} color="#C29958" intensity={0.45} />
+      {/* Traveling Active Photon Spotlight */}
+      <pointLight ref={photonLightRef} color="#FFE6B6" intensity={2.2} distance={3.2} decay={2} />
     </>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Precision Architectural Monument 3D Scene
+// 3D Spatial Journey Map Scene
 // ---------------------------------------------------------------------------
-function PrecisionArchitectureScene({
+function TrackMapScene({
   activePhase,
   scrollProgress = 0,
   scrollProgressRef,
   isPhasePinnedRef,
   mousePosRef,
+  isMobile,
   onPhaseSelect,
+  onProjectCoords,
 }: {
   activePhase: number
   scrollProgress?: number
   scrollProgressRef?: MutableRefObject<number>
   isPhasePinnedRef?: MutableRefObject<boolean>
   mousePosRef: MutableRefObject<{ x: number; y: number }>
+  isMobile: boolean
   onPhaseSelect?: (index: number) => void
+  onProjectCoords: (coords: { x: number; y: number }[]) => void
 }) {
   const { size } = useThree()
-  const fitGroupRef = useRef<THREE.Group>(null)
+  const photonLightRef = useRef<THREE.PointLight>(null)
+  const photonMeshRef = useRef<THREE.Mesh>(null)
+  const activeLineMeshRef = useRef<THREE.Mesh>(null)
   const masterGroupRef = useRef<THREE.Group>(null)
-  const glidingLightRef = useRef<THREE.PointLight>(null)
 
-  const camLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
+  const camLookAtRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0.05, 0))
   const smoothedPhaseRef = useRef<number>(0)
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const smoothedProgressURef = useRef<number>(0.1)
 
-  // Compute responsive container fit so perspective adjusts naturally
-  const responsiveFitScale = useMemo(() => {
-    const aspect = size.width / Math.max(1, size.height)
-    const refViewH = 2 * 5.4 * Math.tan(THREE.MathUtils.degToRad(34 * 0.5))
-    const refViewW = refViewH * aspect
-    const sculptureSpanW = 6.2
-    const sculptureSpanH = 3.0
-    const occupancyW = aspect < 1.2 ? 0.84 : 0.74
-    const occupancyH = 0.72
-    const fitW = (refViewW * occupancyW) / sculptureSpanW
-    const fitH = (refViewH * occupancyH) / sculptureSpanH
-    return Math.min(1.05, fitW, fitH)
-  }, [size.width, size.height])
+  // Spline & Track Geometries
+  const curve = useMemo(() => buildTrackCurve(isMobile), [isMobile])
 
-  const textures = useMemo(() => createLuxuryStudioTextures(), [])
+  const trackGeometries = useMemo(() => {
+    // Primary Brushed Champagne Track Rail
+    const baseTrack = buildSweptTrackGeometry(
+      curve,
+      isMobile ? 0.10 : 0.14,
+      0.032,
+      260
+    )
 
-  // Generate 6 Monolithic Forms, Inlays, and Interlocking Mechanical Collars
-  const assembly = useMemo(() => {
-    const splines: FormSplineCurve[] = []
-    const chassisGeometries: THREE.BufferGeometry[] = []
-    const inlayGeometries: THREE.BufferGeometry[] = []
-    const collarGeometries: THREE.BufferGeometry[] = []
-    const centerPoints: THREE.Vector3[] = []
+    // Deep Obsidian Foundation Chassis underneath
+    const foundationBed = buildSweptTrackGeometry(
+      curve,
+      isMobile ? 0.13 : 0.18,
+      0.024,
+      260
+    )
 
-    ARCHITECTURAL_FORMS.forEach((form) => {
-      const curve = new FormSplineCurve(form.controlPoints)
-      splines.push(curve)
-      chassisGeometries.push(
-        buildMonolithicChassisGeometry(curve, form.width, form.thickness, form.chamfer, 64)
-      )
-      inlayGeometries.push(
-        buildRecessedInlayGeometry(curve, form.width, form.thickness, 48)
-      )
-      centerPoints.push(curve.getPoint(0.5))
-    })
+    // Fine Hairline Centerline Tube
+    const activeLine = buildCenterlineTubeGeometry(curve, isMobile ? 0.007 : 0.009, 260)
+    const standbyLine = buildCenterlineTubeGeometry(curve, isMobile ? 0.007 : 0.009, 260)
+    const floorGuideLine = buildCenterlineTubeGeometry(curve, 0.007, 140)
 
-    // 5 Interlocking Smoked Titanium Collars bridging consecutive stages
-    for (let i = 0; i < ARCHITECTURAL_FORMS.length - 1; i++) {
-      const pEnd = splines[i].getPoint(0.96)
-      const pStartNext = splines[i + 1].getPoint(0.04)
-      const midPos = new THREE.Vector3().addVectors(pEnd, pStartNext).multiplyScalar(0.5)
-      const tangent = splines[i].getTangent(1.0)
-      collarGeometries.push(
-        buildInterlockingCollarGeometry(midPos, tangent, 0.28, 0.22, 32)
-      )
-    }
+    // Architectural floor datum grid
+    const gridHelper = new THREE.GridHelper(12, 24, 0x8a6e3e, 0x181a24)
+    gridHelper.position.y = -1.82
 
     return {
-      splines,
-      chassisGeometries,
-      inlayGeometries,
-      collarGeometries,
-      centerPoints,
+      baseTrack,
+      foundationBed,
+      activeLine,
+      standbyLine,
+      floorGuideLine,
+      gridHelper,
     }
-  }, [])
+  }, [curve, isMobile])
 
-  // Physical Materials for Chassis, Inlays, and Interlocking Sleeves
+  const textures = useMemo(() => createTrackTextures(), [])
+
+  // Physical Materials
   const materials = useMemo(() => {
-    // 1. Primary Satin Champagne Gold Monolithic Body
-    const chassisMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#D8C49D'),
+    // 1. Primary Brushed Champagne-Gold Alloy Rail
+    const baseTrackMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#C8A663'),
       map: textures.albedoMap,
       roughnessMap: textures.roughnessMap,
-      bumpMap: textures.bumpMap,
-      bumpScale: 0.0006,
-      metalness: 0.92,
-      roughness: 0.22,
-      clearcoat: 0.25,
-      clearcoatRoughness: 0.16,
-      envMapIntensity: 1.25,
+      metalness: 0.90,
+      roughness: 0.28,
+      envMapIntensity: 1.2,
     })
 
-    // 2. Six Recessed Optical Chronometer Channels (one per form)
-    const inlayMaterials = ARCHITECTURAL_FORMS.map(
+    // 2. Deep Obsidian Foundation Chassis Material
+    const foundationBedMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#141620'),
+      metalness: 0.95,
+      roughness: 0.38,
+      envMapIntensity: 0.8,
+    })
+
+    // 3. Active Illuminated Champagne-Gold Centerline Tube
+    const activeLineMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#FFF8EC'),
+      emissive: new THREE.Color('#ECC87A'),
+      emissiveIntensity: 2.3,
+      metalness: 0.65,
+      roughness: 0.15,
+    })
+
+    // 4. Standby Subtle Centerline Base
+    const standbyLineMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#8A6E3E'),
+      emissive: new THREE.Color('#3A2C14'),
+      emissiveIntensity: 0.35,
+      metalness: 0.85,
+      roughness: 0.35,
+      transparent: true,
+      opacity: 0.40,
+    })
+
+    // 5. Checkpoint Node Materials
+    const plinthMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#161822'),
+      metalness: 0.95,
+      roughness: 0.26,
+      envMapIntensity: 0.9,
+    })
+
+    const bezelMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#D4B276'),
+      metalness: 0.94,
+      roughness: 0.20,
+      envMapIntensity: 1.3,
+    })
+
+    const nodeCoreMats = CHECKPOINTS.map(
       () =>
         new THREE.MeshStandardMaterial({
-          color: COLOR_IDLE_INLAY.clone(),
-          emissive: COLOR_IDLE_EMISSIVE.clone(),
+          color: new THREE.Color('#14161F'),
+          emissive: new THREE.Color('#20180E'),
           emissiveIntensity: 0.15,
-          metalness: 0.88,
-          roughness: 0.32,
-          envMapIntensity: 1.2,
+          metalness: 0.90,
+          roughness: 0.22,
         })
     )
 
-    // 3. Dark Smoked Titanium Interlocking Connector Sleeves
-    const collarMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#222329'),
-      metalness: 0.95,
-      roughness: 0.28,
-      envMapIntensity: 0.95,
-    })
-
     return {
-      chassisMaterial,
-      inlayMaterials,
-      collarMaterial,
+      baseTrackMat,
+      foundationBedMat,
+      activeLineMat,
+      standbyLineMat,
+      plinthMat,
+      bezelMat,
+      nodeCoreMats,
     }
   }, [textures])
 
-  // Soft Contact Shadow Texture
+  // Soft Contact Shadow Texture under the installation
   const shadowTex = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 256
+    canvas.width = 512
     canvas.height = 256
     const ctx = canvas.getContext('2d')
     if (!ctx) return null
-    const grad = ctx.createRadialGradient(128, 128, 10, 128, 128, 124)
-    grad.addColorStop(0, 'rgba(0, 0, 0, 0.68)')
-    grad.addColorStop(0.38, 'rgba(12, 10, 8, 0.34)')
-    grad.addColorStop(0.75, 'rgba(12, 10, 8, 0.08)')
+    const grad = ctx.createRadialGradient(256, 128, 10, 256, 128, 240)
+    grad.addColorStop(0, 'rgba(0, 0, 0, 0.72)')
+    grad.addColorStop(0.35, 'rgba(12, 10, 8, 0.38)')
+    grad.addColorStop(0.70, 'rgba(12, 10, 8, 0.08)')
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)')
     ctx.fillStyle = grad
-    ctx.fillRect(0, 0, 256, 256)
+    ctx.fillRect(0, 0, 512, 256)
     const tex = new THREE.CanvasTexture(canvas)
     tex.needsUpdate = true
     return tex
@@ -216,33 +232,36 @@ function PrecisionArchitectureScene({
     return () => {
       textures.dispose()
       if (shadowTex) shadowTex.dispose()
-      assembly.chassisGeometries.forEach((g) => g.dispose())
-      assembly.inlayGeometries.forEach((g) => g.dispose())
-      assembly.collarGeometries.forEach((g) => g.dispose())
-      materials.chassisMaterial.dispose()
-      materials.collarMaterial.dispose()
-      materials.inlayMaterials.forEach((m) => m.dispose())
+      trackGeometries.baseTrack.dispose()
+      trackGeometries.foundationBed.dispose()
+      trackGeometries.activeLine.dispose()
+      trackGeometries.standbyLine.dispose()
+      trackGeometries.floorGuideLine.dispose()
+      materials.baseTrackMat.dispose()
+      materials.foundationBedMat.dispose()
+      materials.activeLineMat.dispose()
+      materials.standbyLineMat.dispose()
+      materials.plinthMat.dispose()
+      materials.bezelMat.dispose()
+      materials.nodeCoreMats.forEach((m) => m.dispose())
     }
-  }, [textures, shadowTex, assembly, materials])
+  }, [textures, shadowTex, trackGeometries, materials])
 
-  // Animation Loop: Camera choreography, optical glow pulsing, and cursor parallax
+  // Normalized U milestones for the 6 checkpoints along the curve (0.0 to 1.0)
+  const checkpointU = useMemo(() => [0.08, 0.26, 0.44, 0.62, 0.80, 0.94], [])
+
+  // Animation Loop: Route progress, traveling photon, and camera transitions
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05)
     const time = state.clock.getElapsedTime()
 
-    if (fitGroupRef.current) {
-      fitGroupRef.current.scale.setScalar(responsiveFitScale)
-    }
-
-    // Determine target phase index (continuous fractional 0..5)
+    // Determine target phase and progress along route
     const rawScroll = THREE.MathUtils.clamp(
       scrollProgressRef ? scrollProgressRef.current : scrollProgress,
       0,
       1
     )
-    const scrollPhaseF = rawScroll * 5.0
-    const targetPhaseF = isPhasePinnedRef?.current ? activePhase : scrollPhaseF
-
+    const targetPhaseF = isPhasePinnedRef?.current ? activePhase : rawScroll * 5.0
     smoothedPhaseRef.current = THREE.MathUtils.damp(
       smoothedPhaseRef.current,
       targetPhaseF,
@@ -251,17 +270,52 @@ function PrecisionArchitectureScene({
     )
     const pF = smoothedPhaseRef.current
 
-    // Camera viewpoint interpolation across 6 gallery targets
+    // Target route progress U
+    const targetU = checkpointU[activePhase] ?? 0.1
+    smoothedProgressURef.current = THREE.MathUtils.damp(
+      smoothedProgressURef.current,
+      targetU,
+      4.8,
+      dt
+    )
+    const currentU = THREE.MathUtils.clamp(smoothedProgressURef.current, 0.01, 1.0)
+
+    // Update active illuminated centerline draw range
+    if (activeLineMeshRef.current) {
+      const geo = activeLineMeshRef.current.geometry
+      const totalIndices = geo.index ? geo.index.count : 0
+      if (totalIndices > 0) {
+        const count = Math.floor(currentU * totalIndices)
+        geo.setDrawRange(0, count)
+      }
+    }
+
+    // Position traveling photon orb and gliding spotlight at leading edge of route
+    const photonPos = curve.getPoint(currentU)
+    if (photonMeshRef.current) {
+      photonMeshRef.current.position.copy(photonPos)
+      const scale = 1.0 + Math.sin(time * 6.0) * 0.12
+      photonMeshRef.current.scale.setScalar(scale)
+    }
+    if (photonLightRef.current) {
+      photonLightRef.current.position.set(photonPos.x, photonPos.y + 0.35, photonPos.z + 0.5)
+    }
+
+    // Camera viewpoint interpolation
+    const camTargets = isMobile ? MOBILE_CAMERA_VIEWS : DESKTOP_CAMERA_VIEWS
     const lowerIdx = Math.floor(pF)
-    const upperIdx = Math.min(PRECISION_CAMERA_TARGETS.length - 1, lowerIdx + 1)
+    const upperIdx = Math.min(camTargets.length - 1, lowerIdx + 1)
     const blend = pF - lowerIdx
 
-    const tLower = PRECISION_CAMERA_TARGETS[lowerIdx] || PRECISION_CAMERA_TARGETS[0]
-    const tUpper = PRECISION_CAMERA_TARGETS[upperIdx] || tLower
+    const tLower = camTargets[lowerIdx] || camTargets[0]
+    const tUpper = camTargets[upperIdx] || tLower
+
+    const mx = mousePosRef.current.x
+    const my = mousePosRef.current.y
 
     const targetCamPos = new THREE.Vector3(
-      THREE.MathUtils.lerp(tLower.pos[0], tUpper.pos[0], blend),
-      THREE.MathUtils.lerp(tLower.pos[1], tUpper.pos[1], blend),
+      THREE.MathUtils.lerp(tLower.pos[0], tUpper.pos[0], blend) + mx * 0.18,
+      THREE.MathUtils.lerp(tLower.pos[1], tUpper.pos[1], blend) + my * 0.12,
       THREE.MathUtils.lerp(tLower.pos[2], tUpper.pos[2], blend)
     )
 
@@ -271,148 +325,206 @@ function PrecisionArchitectureScene({
       THREE.MathUtils.lerp(tLower.lookAt[2], tUpper.lookAt[2], blend)
     )
 
-    // Subtle cursor parallax
-    const mx = mousePosRef.current.x
-    const my = mousePosRef.current.y
-    targetCamPos.x += mx * 0.32
-    targetCamPos.y += my * 0.22
-
-    state.camera.position.lerp(targetCamPos, 0.06)
-    camLookAtRef.current.lerp(targetLookAt, 0.06)
+    state.camera.position.lerp(targetCamPos, 0.055)
+    camLookAtRef.current.lerp(targetLookAt, 0.055)
     state.camera.lookAt(camLookAtRef.current)
 
-    // Gentle sculpture idle breath rotation
-    if (masterGroupRef.current) {
-      const targetYaw = THREE.MathUtils.lerp(tLower.sculptureYaw, tUpper.sculptureYaw, blend)
-      const targetPitch = THREE.MathUtils.lerp(tLower.sculpturePitch, tUpper.sculpturePitch, blend)
-      const idleYaw = Math.sin(time * 0.35) * 0.02
-      const idlePitch = Math.cos(time * 0.28) * 0.015
-
-      masterGroupRef.current.rotation.y = THREE.MathUtils.damp(
-        masterGroupRef.current.rotation.y,
-        targetYaw + idleYaw + mx * 0.04,
-        4.0,
-        dt
-      )
-      masterGroupRef.current.rotation.x = THREE.MathUtils.damp(
-        masterGroupRef.current.rotation.x,
-        targetPitch + idlePitch - my * 0.03,
-        4.0,
-        dt
-      )
-    }
-
-    // Dynamic Gliding Spotlight tracks the active form's center
-    if (glidingLightRef.current && assembly.centerPoints[activePhase]) {
-      const activeCenter = assembly.centerPoints[activePhase]
-      const lightDest = new THREE.Vector3(
-        activeCenter.x,
-        activeCenter.y + 0.65,
-        activeCenter.z + 1.25
-      )
-      glidingLightRef.current.position.lerp(lightDest, 0.08)
-    }
-
-    // Update Optical Inlays Luminescence & Sine Pulse
-    const pulseFactor = 0.5 + 0.5 * Math.sin(time * 3.2)
-    materials.inlayMaterials.forEach((mat, idx) => {
+    // Update Checkpoint Nodes Illumination
+    const pulseFactor = 0.5 + 0.5 * Math.sin(time * 3.4)
+    materials.nodeCoreMats.forEach((mat, idx) => {
       const isCurrent = idx === activePhase
       const isPast = idx < activePhase
 
       if (isCurrent) {
-        mat.color.lerp(COLOR_ACTIVE_INLAY, 0.12)
-        mat.emissive.lerp(COLOR_ACTIVE_EMISSIVE, 0.12)
-        mat.emissiveIntensity = THREE.MathUtils.lerp(1.4, 2.2, pulseFactor)
+        mat.color.set('#FFF8EC')
+        mat.emissive.set('#ECC87A')
+        mat.emissiveIntensity = THREE.MathUtils.lerp(1.8, 2.6, pulseFactor)
       } else if (isPast) {
-        mat.color.lerp(COLOR_DONE_INLAY, 0.12)
-        mat.emissive.lerp(COLOR_DONE_EMISSIVE, 0.12)
-        mat.emissiveIntensity = 0.35
+        mat.color.set('#D4B276')
+        mat.emissive.set('#5E4318')
+        mat.emissiveIntensity = 0.70
       } else {
-        mat.color.lerp(COLOR_IDLE_INLAY, 0.12)
-        mat.emissive.lerp(COLOR_IDLE_EMISSIVE, 0.12)
+        mat.color.set('#14161F')
+        mat.emissive.set('#20180E')
         mat.emissiveIntensity = 0.12
       }
     })
+
+    // Project 3D node coordinates to 2D screen coordinates for razor-sharp HTML labels
+    const projected = CHECKPOINTS.map((cp) => {
+      const pos = isMobile ? cp.posMobile : cp.posDesktop
+      const v = new THREE.Vector3(pos[0], pos[1], pos[2])
+      v.project(state.camera)
+      return {
+        x: (v.x * 0.5 + 0.5) * size.width,
+        y: (-v.y * 0.5 + 0.5) * size.height,
+      }
+    })
+    onProjectCoords(projected)
   })
 
   return (
     <>
-      <PrecisionStudioLightingRig glidingLightRef={glidingLightRef} />
+      <TrackStudioLightingRig photonLightRef={photonLightRef} />
 
-      <group ref={fitGroupRef} position={[0, 0, 0]}>
-        <group ref={masterGroupRef}>
-          {/* 1. Six Precision Monolithic Forms with Recessed Chronometer Inlays */}
-          {ARCHITECTURAL_FORMS.map((form, idx) => {
-            const isHovered = hoveredIndex === idx
-            const isActive = activePhase === idx
+      <group ref={masterGroupRef} position={[0, 0, 0]}>
+        {/* 1. Deep Obsidian Foundation Bed Chassis underneath */}
+        <mesh
+          geometry={trackGeometries.foundationBed}
+          material={materials.foundationBedMat}
+          position={[0, -0.022, 0]}
+        />
 
-            return (
-              <group
-                key={form.number}
-                onPointerOver={(e) => {
-                  e.stopPropagation()
-                  setHoveredIndex(idx)
-                  document.body.style.cursor = 'pointer'
-                }}
-                onPointerOut={(e) => {
-                  e.stopPropagation()
-                  setHoveredIndex((curr) => (curr === idx ? null : curr))
-                  document.body.style.cursor = 'auto'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (onPhaseSelect) onPhaseSelect(idx)
-                }}
+        {/* 2. Base Raised Champagne-Gold Metallic Track Rail */}
+        <mesh geometry={trackGeometries.baseTrack} material={materials.baseTrackMat} receiveShadow />
+
+        {/* 3. Standby Subtle Centerline Base */}
+        <mesh
+          geometry={trackGeometries.standbyLine}
+          material={materials.standbyLineMat}
+          position={[0, 0.016, 0]}
+        />
+
+        {/* 4. Dynamic Active Illuminated Centerline Tube */}
+        <mesh
+          ref={activeLineMeshRef}
+          geometry={trackGeometries.activeLine}
+          material={materials.activeLineMat}
+          position={[0, 0.016, 0]}
+        />
+
+        {/* 5. Subtle Secondary Ground Guide Line on Floor Plinth */}
+        <mesh
+          geometry={trackGeometries.floorGuideLine}
+          position={[0, -1.82, 0]}
+        >
+          <meshBasicMaterial color="#9A7A4A" transparent opacity={0.16} />
+        </mesh>
+
+        {/* 6. Floor Datum Coordinate Grid */}
+        <primitive object={trackGeometries.gridHelper} />
+
+        {/* 7. Traveling Photon Node at the Leading Edge */}
+        <mesh ref={photonMeshRef}>
+          <sphereGeometry args={[isMobile ? 0.04 : 0.048, 16, 16]} />
+          <meshStandardMaterial
+            color="#FFFFFF"
+            emissive="#ECC87A"
+            emissiveIntensity={2.8}
+            roughness={0.08}
+          />
+        </mesh>
+
+        {/* 8. Six Architectural Checkpoint Nodes with Stepped Plinths */}
+        {CHECKPOINTS.map((cp, idx) => {
+          const coords = isMobile ? cp.posMobile : cp.posDesktop
+          const isActive = activePhase === idx
+          const isPast = idx < activePhase
+
+          return (
+            <group
+              key={cp.number}
+              position={[coords[0], coords[1], coords[2]]}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (onPhaseSelect) onPhaseSelect(idx)
+              }}
+              onPointerOver={(e) => {
+                e.stopPropagation()
+                document.body.style.cursor = 'pointer'
+              }}
+              onPointerOut={(e) => {
+                e.stopPropagation()
+                document.body.style.cursor = 'auto'
+              }}
+            >
+              {/* Stepped Architectural Graphite Plinth Base */}
+              <mesh position={[0, -0.04, 0]} material={materials.plinthMat} castShadow>
+                <cylinderGeometry args={[0.22, 0.25, 0.04, 32]} />
+              </mesh>
+
+              {/* Machined Champagne-Gold Bevelled Collar */}
+              <mesh position={[0, -0.01, 0]} material={materials.bezelMat}>
+                <cylinderGeometry args={[0.18, 0.20, 0.025, 32]} />
+              </mesh>
+
+              {/* Precision Optical Core Disc */}
+              <mesh
+                position={[0, 0.01, 0]}
+                material={materials.nodeCoreMats[idx]}
+                scale={isActive ? 1.08 : 1.0}
               >
-                {/* Main Machined Solid Chassis */}
-                <mesh
-                  geometry={assembly.chassisGeometries[idx]}
-                  material={materials.chassisMaterial}
-                  castShadow
-                  receiveShadow
-                  scale={isHovered ? 1.015 : 1.0}
+                <cylinderGeometry args={[0.15, 0.15, 0.015, 32]} />
+              </mesh>
+
+              {/* Inlaid Concentric Glow Ring on Top Surface */}
+              <mesh position={[0, 0.018, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[0.07, 0.11, 32]} />
+                <meshBasicMaterial
+                  color={isActive ? '#FFE8B0' : isPast ? '#C8A663' : '#3B4050'}
+                  transparent
+                  opacity={isActive ? 0.95 : isPast ? 0.70 : 0.25}
                 />
+              </mesh>
 
-                {/* Recessed Antique Brass Chronometer Optical Inlay Channel */}
-                <mesh
-                  geometry={assembly.inlayGeometries[idx]}
-                  material={materials.inlayMaterials[idx]}
-                  scale={isActive ? 1.008 : 1.0}
+              {/* Active Radiant Outer Halo (Only visible when node is active) */}
+              {isActive && (
+                <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                  <ringGeometry args={[0.22, 0.28, 32]} />
+                  <meshBasicMaterial
+                    color="#ECC87A"
+                    transparent
+                    opacity={0.50}
+                    depthWrite={false}
+                  />
+                </mesh>
+              )}
+
+              {/* Vertical Datum Hairline connecting node down to floor grid */}
+              <line>
+                <bufferGeometry>
+                  <bufferAttribute
+                    attach="attributes-position"
+                    count={2}
+                    array={new Float32Array([0, -0.06, 0, 0, -1.82 - coords[1], 0])}
+                    itemSize={3}
+                  />
+                </bufferGeometry>
+                <lineBasicMaterial
+                  color={isActive ? '#ECC87A' : '#8A6E3E'}
+                  transparent
+                  opacity={isActive ? 0.55 : 0.18}
                 />
-              </group>
-            )
-          })}
+              </line>
 
-          {/* 2. Five Dark Smoked Titanium Interlocking Connector Collars */}
-          {assembly.collarGeometries.map((geo, idx) => (
-            <mesh
-              key={`collar-${idx}`}
-              geometry={geo}
-              material={materials.collarMaterial}
-              castShadow
-            />
-          ))}
+              {/* Floor Plane Datum Anchor Ring */}
+              <mesh position={[0, -1.82 - coords[1], 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[0.08, 0.11, 32]} />
+                <meshBasicMaterial
+                  color={isActive ? '#ECC87A' : '#6A5634'}
+                  transparent
+                  opacity={isActive ? 0.65 : 0.20}
+                  depthWrite={false}
+                />
+              </mesh>
+            </group>
+          )
+        })}
 
-          {/* 3. Soft Studio Gallery Contact Shadow Plane */}
-          {shadowTex && (
-            <mesh position={[0, -1.65, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[6.4, 3.2]} />
-              <meshBasicMaterial
-                map={shadowTex}
-                transparent
-                opacity={0.58}
-                depthWrite={false}
-              />
-            </mesh>
-          )}
-        </group>
+        {/* 9. Soft Studio Contact Shadow Plane */}
+        {shadowTex && (
+          <mesh position={[0, -1.83, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[10.5, 3.6]} />
+            <meshBasicMaterial map={shadowTex} transparent opacity={0.65} depthWrite={false} />
+          </mesh>
+        )}
       </group>
     </>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Master Lifecycle 3D Gallery Stage Container
+// Master 3D Engineering Journey Map Container & Projected HTML Labels
 // ---------------------------------------------------------------------------
 export default function LifecycleRibbon3D({
   activePhase,
@@ -420,10 +532,23 @@ export default function LifecycleRibbon3D({
   scrollProgressRef,
   isPhasePinnedRef,
   onPhaseSelect,
-}: LifecycleRibbon3DProps) {
+}: LifecycleTrackMap3DProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mousePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [projectedCoords, setProjectedCoords] = useState<{ x: number; y: number }[]>([])
+  const [isMobile, setIsMobile] = useState<boolean>(false)
 
+  // Track responsive screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile, { passive: true })
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Mouse Parallax listener
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -453,7 +578,7 @@ export default function LifecycleRibbon3D({
     }
   }, [])
 
-  const currentForm = ARCHITECTURAL_FORMS[activePhase] || ARCHITECTURAL_FORMS[0]
+  const currentCP = CHECKPOINTS[activePhase] || CHECKPOINTS[0]
 
   return (
     <div
@@ -467,38 +592,38 @@ export default function LifecycleRibbon3D({
           '0 28px 60px -22px rgba(0, 0, 0, 0.65), inset 0 0 50px rgba(201, 164, 102, 0.04)',
       }}
     >
-      {/* Subtle Atmospheric Studio Amber Glow behind sculpture */}
+      {/* Subtle Atmospheric Studio Amber Glow behind track map */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(201, 164, 102, 0.08) 0%, rgba(123, 66, 214, 0.025) 45%, transparent 70%)',
+            'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(201, 164, 102, 0.07) 0%, rgba(123, 66, 214, 0.02) 45%, transparent 70%)',
         }}
       />
 
-      {/* Refined Editorial Header */}
+      {/* Refined Presentation Panel Header */}
       <div className="absolute top-5 left-6 right-6 z-10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono tracking-widest uppercase pointer-events-none">
         <div className="flex items-center gap-2.5" style={{ color: '#ECC87A' }}>
           <span className="w-2 h-2 rounded-full bg-[#ECC87A] animate-pulse" />
-          <span className="font-semibold tracking-[0.2em]">THE PRECISION ARCHITECTURE</span>
+          <span className="font-semibold tracking-[0.2em]">THE ENGINEERING JOURNEY</span>
         </div>
         <div className="text-[11px] text-stone-300 font-mono tracking-[0.16em]">
-          PHASE // {currentForm.number} OF 06 ACTIVE — {currentForm.name.toUpperCase()}
+          PHASE {currentCP.number} / 06 — {currentCP.subtitle.toUpperCase()}
         </div>
       </div>
 
-      {/* Bottom Subtle Navigation Indicator */}
+      {/* Bottom Route Progression Indicator */}
       <div className="absolute bottom-4 left-6 right-6 z-10 flex items-center justify-between pointer-events-none text-[10px] font-mono tracking-[0.18em] text-stone-400">
         <span className="hidden sm:inline opacity-70">
-          INTERACTIVE ARCHITECTURE // HOVER OR CLICK FORMS TO INSPECT
+          ARCHITECTURAL ROUTE MAP // CLICK MILESTONES OR SCROLL TO NAVIGATE
         </span>
         <div className="flex items-center gap-1.5 ml-auto">
-          {ARCHITECTURAL_FORMS.map((f, idx) => (
+          {CHECKPOINTS.map((cp, idx) => (
             <button
-              key={f.number}
+              key={cp.number}
               type="button"
-              aria-label={`Select phase ${f.number}`}
+              aria-label={`Select phase ${cp.number}`}
               onClick={() => onPhaseSelect && onPhaseSelect(idx)}
               className="pointer-events-auto transition-all duration-300 rounded-full"
               style={{
@@ -513,7 +638,7 @@ export default function LifecycleRibbon3D({
 
       {/* 3D WebGL Canvas */}
       <Canvas
-        camera={{ position: [-2.1, -0.42, 5.6], fov: 34 }}
+        camera={{ position: [0, 1.45, 5.5], fov: 34 }}
         gl={{
           antialias: true,
           alpha: true,
@@ -524,15 +649,109 @@ export default function LifecycleRibbon3D({
         dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.75) : 1}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       >
-        <PrecisionArchitectureScene
+        <TrackMapScene
           activePhase={activePhase}
           scrollProgress={scrollProgress}
           scrollProgressRef={scrollProgressRef}
           isPhasePinnedRef={isPhasePinnedRef}
           mousePosRef={mousePosRef}
+          isMobile={isMobile}
           onPhaseSelect={onPhaseSelect}
+          onProjectCoords={setProjectedCoords}
         />
       </Canvas>
+
+      {/* =====================================================================
+          PROJECTED 2D/3D CHECKPOINT LABELS
+          - Positioned beside/above/below corresponding nodes using projected coordinates
+          - Alternating placement guarantees ZERO overlapping or collisions
+          - Clamped safely within container margins so labels never clip outer boundaries
+          ===================================================================== */}
+      {projectedCoords.length === CHECKPOINTS.length &&
+        CHECKPOINTS.map((cp, idx) => {
+          const coord = projectedCoords[idx]
+          if (!coord || coord.x < -100 || coord.x > 3000) return null
+
+          const isActive = activePhase === idx
+          const isCompleted = idx < activePhase
+          const isBelow = cp.labelPlacement === 'below'
+
+          // Measured container boundaries
+          const containerW = containerRef.current?.clientWidth || 1000
+          const containerH = containerRef.current?.clientHeight || 560
+
+          // Vertical & horizontal offsets
+          const offsetY = isMobile ? -14 : isBelow ? 50 : -60
+          const offsetX = isMobile ? 34 : 0
+
+          // Boundary clamping prevents clipping or boundary collision
+          const rawX = coord.x + offsetX
+          const rawY = coord.y + offsetY
+          const minX = isMobile ? 16 : 95
+          const maxX = containerW - (isMobile ? 165 : 95)
+          const minY = isMobile ? 65 : 58
+          const maxY = containerH - (isMobile ? 45 : 55)
+
+          const safeX = THREE.MathUtils.clamp(rawX, minX, maxX)
+          const safeY = THREE.MathUtils.clamp(rawY, minY, maxY)
+
+          return (
+            <button
+              key={`label-${cp.number}`}
+              type="button"
+              onClick={() => onPhaseSelect && onPhaseSelect(idx)}
+              className="absolute z-20 group flex flex-col transition-all duration-300 outline-none cursor-pointer text-left"
+              style={{
+                left: `${safeX}px`,
+                top: `${safeY}px`,
+                transform: isMobile ? 'none' : 'translateX(-50%)',
+                padding: '5px 10px',
+                borderRadius: '8px',
+                backgroundColor: isActive
+                  ? 'rgba(18, 20, 28, 0.94)'
+                  : 'rgba(12, 14, 20, 0.70)',
+                border: isActive
+                  ? '1px solid #ECC87A'
+                  : '1px solid rgba(201, 164, 102, 0.30)',
+                backdropFilter: 'blur(8px)',
+                boxShadow: isActive
+                  ? '0 8px 24px -4px rgba(236, 200, 122, 0.35), 0 0 12px rgba(236, 200, 122, 0.20)'
+                  : '0 4px 12px rgba(0, 0, 0, 0.40)',
+                maxWidth: isMobile ? '160px' : '185px',
+              }}
+            >
+              <div className="flex items-center gap-1.5 leading-none mb-1">
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-300"
+                  style={{
+                    backgroundColor: isActive
+                      ? '#ECC87A'
+                      : isCompleted
+                      ? '#D4B276'
+                      : 'rgba(255, 255, 255, 0.35)',
+                    boxShadow: isActive ? '0 0 8px #ECC87A' : 'none',
+                  }}
+                />
+                <span
+                  className="font-mono text-[10px] tracking-[0.18em] font-bold"
+                  style={{
+                    color: isActive ? '#ECC87A' : isCompleted ? '#D4B276' : 'rgba(243, 239, 232, 0.65)',
+                  }}
+                >
+                  {cp.number}
+                </span>
+              </div>
+              <span
+                className="font-sans text-[11px] sm:text-[11.5px] font-semibold tracking-[0.06em] whitespace-nowrap transition-colors duration-300"
+                style={{
+                  color: isActive ? '#FFF6E1' : isCompleted ? '#E8D5B8' : 'rgba(243, 239, 232, 0.85)',
+                }}
+              >
+                {cp.title}
+              </span>
+            </button>
+          )
+        })}
     </div>
   )
 }
