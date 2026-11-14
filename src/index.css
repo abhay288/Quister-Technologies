@@ -1,0 +1,457 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   QUISTER TECHNOLOGIES — Design System
+   ============================================================ */
+
+/* --- Custom Properties --- */
+:root {
+  /* Brand Colors & Jellyfish Atmosphere Palette */
+  --color-abyss: #09090D;
+  --color-violet-deep: #39204F;
+  --color-purple-royal: #8050B8;
+  --color-lavender: #C7A4FF;
+  --color-gold-highlight: #F4DCA4;
+  --color-text-supporting: #B7B1BE;
+  --color-near-black: #09090D;
+  --color-charcoal: #111318;
+  --color-charcoal-mid: #181A20;
+  --color-charcoal-light: #22252D;
+  --color-champagne: #D7B36A;
+  --color-champagne-light: #F4DCA4;
+  --color-champagne-dark: #9A7A4A;
+  --color-champagne-glow: rgba(215, 179, 106, 0.22);
+  --color-ivory: #F5F0E8;
+  --color-ivory-dark: #E2DDD4;
+  --color-secondary-text: #B7B1BE;
+  --color-status-green: #55D88A;
+  --color-warm-white: #FAF8F5;
+
+  /* Typography — Luxury Editorial Pairing */
+  --font-display: 'Instrument Serif', 'Bodoni Moda', 'Didot', Georgia, serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+
+  /* Spacing Scale */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: 8rem;
+  --space-2xl: 12rem;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 400ms;
+  --duration-slow: 800ms;
+  --duration-very-slow: 1400ms;
+}
+
+/* --- Base Reset & Global --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Official Lenis Smooth Scroll Rules */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-near-black);
+  color: var(--color-ivory);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Prevent layout shift from scrollbar */
+html {
+  overflow-y: scroll;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-charcoal);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-champagne-dark);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-champagne);
+}
+
+/* --- Typography Base --- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+/* --- Focus States --- */
+:focus-visible {
+  outline: 2px solid var(--color-champagne);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* --- Selection --- */
+::selection {
+  background: var(--color-champagne);
+  color: var(--color-charcoal);
+}
+
+/* --- Utility Classes --- */
+@layer components {
+  .text-champagne {
+    color: var(--color-champagne);
+  }
+
+  .text-ivory {
+    color: var(--color-ivory);
+  }
+
+  .bg-charcoal {
+    background-color: var(--color-charcoal);
+  }
+
+  .bg-ivory {
+    background-color: var(--color-ivory);
+  }
+
+  /* Label style — e.g. "01 / Services" */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-champagne);
+  }
+
+  /* Display heading — large hero type */
+  .heading-display {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 9rem);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  /* Section heading */
+  .heading-section {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  /* Sub heading */
+  .heading-sub {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  /* Body text */
+  .body-text {
+    font-family: var(--font-sans);
+    font-size: clamp(0.9rem, 1.5vw, 1.0625rem);
+    font-weight: 300;
+    line-height: 1.75;
+    color: rgba(245, 240, 232, 0.7);
+  }
+
+  /* CTA Button — Primary */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 2rem;
+    background: var(--color-champagne);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-fast) var(--ease-out-expo),
+                box-shadow var(--duration-normal) var(--ease-out-expo);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity var(--duration-normal);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-champagne-light);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(201, 169, 110, 0.3);
+  }
+
+  .btn-primary:hover::after {
+    opacity: 1;
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  /* CTA Button — Secondary (Ghost) */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 2rem;
+    background: transparent;
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid rgba(245, 240, 232, 0.25);
+    cursor: pointer;
+    transition: border-color var(--duration-normal),
+                color var(--duration-normal),
+                transform var(--duration-fast);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--color-champagne);
+    color: var(--color-champagne);
+    transform: translateY(-2px);
+  }
+
+  /* Divider line */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.3), transparent);
+  }
+
+  /* Gold accent line */
+  .accent-line {
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--color-champagne);
+  }
+
+  /* Section wrapper */
+  .section-wrapper {
+    padding: var(--space-xl) 0;
+  }
+
+  /* Container */
+  .container-wide {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 clamp(1.5rem, 5vw, 5rem);
+  }
+
+  .container-narrow {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 clamp(1.5rem, 5vw, 5rem);
+  }
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-canvas {
+    animation: none !important;
+  }
+
+  .qt-transition-sheen {
+    display: none !important;
+    animation: none !important;
+  }
+}
+
+/* --- Canvas / Three.js overlay --- */
+.hero-canvas-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-canvas-wrapper canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* --- Noise texture overlay for depth --- */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+}
+
+/* --- Scroll indicator animation --- */
+@keyframes scrollPulse {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(8px); opacity: 0.4; }
+}
+
+.scroll-indicator-dot {
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* --- Subtle champagne emblem sheen for GlobalPageTransition --- */
+@keyframes qtEmblemSheen {
+  0% { transform: translateX(-140%) skewX(-22deg); opacity: 0; }
+  25% { opacity: 0.55; }
+  65% { opacity: 0.25; }
+  100% { transform: translateX(240%) skewX(-22deg); opacity: 0; }
+}
+
+.qt-transition-sheen {
+  animation: qtEmblemSheen 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* --- WebGL fallback --- */
+.webgl-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #2A2A2A 0%, #1A1A1A 100%);
+  position: relative;
+}
+
+.webgl-fallback::before {
+  content: 'Q';
+  font-family: var(--font-display);
+  font-size: clamp(8rem, 20vw, 20rem);
+  font-weight: 300;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-champagne);
+  opacity: 0.6;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  letter-spacing: -0.02em;
+}
+
+/* --- Portfolio card hover --- */
+.portfolio-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.portfolio-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(26,26,26,0.9) 100%);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease-out-expo);
+}
+
+.portfolio-card:hover::before {
+  opacity: 1;
+}
+
+/* --- Gold gradient text utility --- */
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--color-champagne-light) 0%, var(--color-champagne) 50%, var(--color-champagne-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Luminous Lavender to Champagne Gold Gradient (Reference Hero) --- */
+.text-gradient-lavender-gold {
+  background: linear-gradient(90deg, #BFA0FF 0%, #D4B2FF 35%, #EAC786 75%, #F4DCA4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Atmospheric Ethereal Nebula Background --- */
+.hero-abyss-bg {
+  background-color: #09090D;
+  background-image:
+    radial-gradient(ellipse 65% 55% at 50% 32%, rgba(75, 38, 115, 0.42) 0%, rgba(9, 9, 13, 0.88) 60%, #09090D 100%),
+    radial-gradient(circle 380px at 50% 28%, rgba(215, 179, 106, 0.14) 0%, transparent 70%),
+    linear-gradient(135deg, rgba(50, 20, 80, 0.25) 0%, transparent 50%, rgba(85, 35, 125, 0.18) 100%);
+}
+
+/* --- Grid overlay for visual interest (very subtle) --- */
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(215, 179, 106, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(215, 179, 106, 0.025) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
