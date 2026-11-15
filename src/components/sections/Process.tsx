@@ -18,9 +18,25 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
   const headerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [activePhase, setActivePhase] = useState<number>(0)
+  const [isLooping, setIsLooping] = useState<boolean>(true)
+  const [isInStagesView, setIsInStagesView] = useState<boolean>(false)
+  const [isInteracting, setIsInteracting] = useState<boolean>(false)
   const scrollProgressRef = useRef<number>(0)
   const isInteractingRef = useRef<boolean>(false)
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Continuous auto-play loop across the 6 engineering phases
+  useEffect(() => {
+    if (!isLooping || isInStagesView || isInteracting) return
+
+    // Dwell duration: 3.2s for phases 0-4, 4.0s for the deployment finale (phase 5)
+    const dwellDuration = activePhase === 5 ? 4000 : 3200
+    const timer = setTimeout(() => {
+      setActivePhase((prev) => (prev + 1) % 6)
+    }, dwellDuration)
+
+    return () => clearTimeout(timer)
+  }, [isLooping, isInStagesView, isInteracting, activePhase])
 
   useEffect(() => {
     const sectionEl = sectionRef.current
@@ -46,18 +62,22 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
         )
       }
 
-      // Track scroll progress through the process section to synchronize 3D sculpture and phase nodes
-      ScrollTrigger.create({
-        trigger: sectionEl,
-        start: 'top 65%',
-        end: 'bottom 45%',
-        onUpdate: (self) => {
-          scrollProgressRef.current = self.progress
-          if (isInteractingRef.current) return
-          const phaseIndex = Math.min(5, Math.max(0, Math.floor(self.progress * 6)))
-          setActivePhase((prev) => (prev === phaseIndex ? prev : phaseIndex))
-        },
-      })
+      // Synchronize scroll progress when user scrolls into the stage cards below
+      if (contentRef.current) {
+        ScrollTrigger.create({
+          trigger: contentRef.current,
+          start: 'top 75%',
+          end: 'bottom 35%',
+          onEnter: () => setIsInStagesView(true),
+          onLeaveBack: () => setIsInStagesView(false),
+          onUpdate: (self) => {
+            scrollProgressRef.current = self.progress
+            if (isInteractingRef.current) return
+            const phaseIndex = Math.min(5, Math.max(0, Math.floor(self.progress * 6)))
+            setActivePhase((prev) => (prev === phaseIndex ? prev : phaseIndex))
+          },
+        })
+      }
     }, sectionRef)
 
     return () => {
@@ -68,17 +88,25 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
 
   const handlePhaseSelect = (idx: number) => {
     isInteractingRef.current = true
+    setIsInteracting(true)
     setActivePhase(idx)
     if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
+    // Hold selected phase for 8 seconds before resuming the loop
     resetTimerRef.current = setTimeout(() => {
       isInteractingRef.current = false
-    }, 2200)
+      setIsInteracting(false)
+    }, 8000)
   }
 
   const handlePhaseHover = (idx: number) => {
     if (idx !== activePhase) {
       handlePhaseSelect(idx)
     }
+  }
+
+  const handleToggleLoop = () => {
+    setIsLooping((prev) => !prev)
+    setIsInteracting(false)
   }
 
   return (
@@ -200,15 +228,17 @@ export default function Process({ isStandalonePage = true }: ProcessProps) {
         </div>
 
         {/* =====================================================================
-            3D CONTINUOUS METALLIC LIFECYCLE SCULPTURE
-            - Represents 5 progressive stages with active illumination & camera journey
-            - All debug telemetry removed (only editorial label "THE ENGINEERING JOURNEY")
+            3D CONTINUOUS METALLIC LIFECYCLE TRACK MAP
+            - Continuous auto-play loop with interactive milestone selection
+            - Smooth camera gliding & active energy pulse along the 6 checkpoints
             ===================================================================== */}
         <LifecycleRibbon3D
           activePhase={activePhase}
           scrollProgressRef={scrollProgressRef}
           isPhasePinnedRef={isInteractingRef}
           onPhaseSelect={handlePhaseSelect}
+          isLooping={isLooping}
+          onToggleLoop={handleToggleLoop}
         />
 
         {/* =====================================================================

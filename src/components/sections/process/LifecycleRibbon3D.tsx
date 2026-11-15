@@ -18,6 +18,8 @@ interface LifecycleTrackMap3DProps {
   scrollProgressRef?: MutableRefObject<number>
   isPhasePinnedRef?: MutableRefObject<boolean>
   onPhaseSelect?: (index: number) => void
+  isLooping?: boolean
+  onToggleLoop?: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -262,10 +264,16 @@ function TrackMapScene({
       1
     )
     const targetPhaseF = isPhasePinnedRef?.current ? activePhase : rawScroll * 5.0
+
+    // When looping from phase 5 back to phase 0, use a snappier damp factor for a crisp return sweep
+    const isRewindLoop = activePhase === 0 && smoothedProgressURef.current > 0.55
+    const phaseDamp = isRewindLoop ? 7.5 : 5.2
+    const progressDamp = isRewindLoop ? 7.5 : 4.8
+
     smoothedPhaseRef.current = THREE.MathUtils.damp(
       smoothedPhaseRef.current,
       targetPhaseF,
-      5.2,
+      phaseDamp,
       dt
     )
     const pF = smoothedPhaseRef.current
@@ -275,7 +283,7 @@ function TrackMapScene({
     smoothedProgressURef.current = THREE.MathUtils.damp(
       smoothedProgressURef.current,
       targetU,
-      4.8,
+      progressDamp,
       dt
     )
     const currentU = THREE.MathUtils.clamp(smoothedProgressURef.current, 0.01, 1.0)
@@ -532,6 +540,8 @@ export default function LifecycleRibbon3D({
   scrollProgressRef,
   isPhasePinnedRef,
   onPhaseSelect,
+  isLooping = true,
+  onToggleLoop,
 }: LifecycleTrackMap3DProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mousePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
@@ -604,10 +614,42 @@ export default function LifecycleRibbon3D({
 
       {/* Refined Presentation Panel Header */}
       <div className="absolute top-5 left-6 right-6 z-10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono tracking-widest uppercase pointer-events-none">
-        <div className="flex items-center gap-2.5" style={{ color: '#ECC87A' }}>
-          <span className="w-2 h-2 rounded-full bg-[#ECC87A] animate-pulse" />
-          <span className="font-semibold tracking-[0.2em]">THE ENGINEERING JOURNEY</span>
+        <div className="flex items-center gap-3 pointer-events-auto">
+          <div className="flex items-center gap-2.5" style={{ color: '#ECC87A' }}>
+            <span className="w-2 h-2 rounded-full bg-[#ECC87A] animate-pulse" />
+            <span className="font-semibold tracking-[0.2em]">THE ENGINEERING JOURNEY</span>
+          </div>
+
+          {onToggleLoop && (
+            <button
+              type="button"
+              onClick={onToggleLoop}
+              aria-label={isLooping ? 'Pause continuous loop' : 'Play continuous loop'}
+              className="group flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-widest uppercase transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+              style={{
+                backgroundColor: isLooping ? 'rgba(236, 200, 122, 0.14)' : 'rgba(255, 255, 255, 0.06)',
+                border: isLooping ? '1px solid rgba(236, 200, 122, 0.45)' : '1px solid rgba(255, 255, 255, 0.16)',
+                color: isLooping ? '#ECC87A' : 'rgba(243, 239, 232, 0.65)',
+                boxShadow: isLooping ? '0 0 12px rgba(236, 200, 122, 0.16)' : 'none',
+              }}
+            >
+              {isLooping ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ECC87A] animate-pulse" />
+                  <span>LOOPING</span>
+                  <span className="text-[9px] opacity-70">⏸</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-stone-500" />
+                  <span>PAUSED</span>
+                  <span className="text-[#ECC87A] text-[9px]">▶</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
+
         <div className="text-[11px] text-stone-300 font-mono tracking-[0.16em]">
           PHASE {currentCP.number} / 06 — {currentCP.subtitle.toUpperCase()}
         </div>
@@ -616,7 +658,9 @@ export default function LifecycleRibbon3D({
       {/* Bottom Route Progression Indicator */}
       <div className="absolute bottom-4 left-6 right-6 z-10 flex items-center justify-between pointer-events-none text-[10px] font-mono tracking-[0.18em] text-stone-400">
         <span className="hidden sm:inline opacity-70">
-          ARCHITECTURAL ROUTE MAP // CLICK MILESTONES OR SCROLL TO NAVIGATE
+          {isLooping
+            ? 'ARCHITECTURAL ROUTE MAP // CONTINUOUS LOOP ACTIVE • CLICK MILESTONES TO INSPECT'
+            : 'ARCHITECTURAL ROUTE MAP // CLICK MILESTONES OR SCROLL TO NAVIGATE'}
         </span>
         <div className="flex items-center gap-1.5 ml-auto">
           {CHECKPOINTS.map((cp, idx) => (
