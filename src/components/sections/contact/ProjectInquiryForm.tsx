@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   ArrowRight,
   Copy,
@@ -43,6 +43,39 @@ export default function ProjectInquiryForm() {
   const emailInputRef = useRef<HTMLInputElement>(null)
   const requirementsInputRef = useRef<HTMLTextAreaElement>(null)
   const formTopRef = useRef<HTMLFormElement>(null)
+
+  // Pre-populate discipline from URL params or hash if provided (e.g. from /services enquiry CTA)
+  useEffect(() => {
+    const checkDisciplineParam = () => {
+      try {
+        const url = new URL(window.location.href)
+        let disc = url.searchParams.get('discipline')
+        if (!disc && window.location.hash.includes('discipline=')) {
+          const hashParts = window.location.hash.split('?')
+          if (hashParts[1]) {
+            const params = new URLSearchParams(hashParts[1])
+            disc = params.get('discipline')
+          }
+        }
+        if (disc && (DISCIPLINE_OPTIONS as readonly string[]).includes(disc)) {
+          setForm((prev) => ({
+            ...prev,
+            disciplines: prev.disciplines.includes(disc!) ? prev.disciplines : [disc!],
+          }))
+        }
+      } catch {
+        // Ignore URL parsing errors
+      }
+    }
+
+    checkDisciplineParam()
+    window.addEventListener('hashchange', checkDisciplineParam)
+    window.addEventListener('popstate', checkDisciplineParam)
+    return () => {
+      window.removeEventListener('hashchange', checkDisciplineParam)
+      window.removeEventListener('popstate', checkDisciplineParam)
+    }
+  }, [])
 
   // -------------------------------------------------------------------------
   // Handlers

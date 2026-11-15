@@ -7,12 +7,24 @@ export default function ScrollHUD({ currentRoute }: { currentRoute: AppRoute }) 
   const [progress, setProgress] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const [currentSection, setCurrentSection] = useState(
-    currentRoute === '/about' ? 'ABOUT' : currentRoute === '/process' ? 'PROCESS' : 'HERO'
+    currentRoute === '/about'
+      ? 'ABOUT'
+      : currentRoute === '/process'
+      ? 'PROCESS'
+      : currentRoute === '/services'
+      ? 'SERVICES'
+      : 'HERO'
   )
 
   useEffect(() => {
     setCurrentSection(
-      currentRoute === '/about' ? 'ABOUT' : currentRoute === '/process' ? 'PROCESS' : 'HERO'
+      currentRoute === '/about'
+        ? 'ABOUT'
+        : currentRoute === '/process'
+        ? 'PROCESS'
+        : currentRoute === '/services'
+        ? 'SERVICES'
+        : 'HERO'
     )
   }, [currentRoute])
 
@@ -35,7 +47,7 @@ export default function ScrollHUD({ currentRoute }: { currentRoute: AppRoute }) 
       setProgress(Math.min(Math.max(p, 0), 1))
       setIsVisible(scrollY > 280)
 
-      if (currentRoute === '/about' || currentRoute === '/process') {
+      if (currentRoute === '/about' || currentRoute === '/process' || currentRoute === '/services') {
         const pageSections = Array.from(
           document.querySelectorAll<HTMLElement>('[data-scroll-section]')
         ).reverse()
@@ -43,7 +55,12 @@ export default function ScrollHUD({ currentRoute }: { currentRoute: AppRoute }) 
           const rect = el.getBoundingClientRect()
           if (rect.top <= window.innerHeight * 0.45 && rect.bottom >= 0) {
             setCurrentSection(
-              el.dataset.scrollSection || (currentRoute === '/about' ? 'ABOUT' : 'PROCESS')
+              el.dataset.scrollSection ||
+                (currentRoute === '/about'
+                  ? 'ABOUT'
+                  : currentRoute === '/process'
+                  ? 'PROCESS'
+                  : 'SERVICES')
             )
             break
           }

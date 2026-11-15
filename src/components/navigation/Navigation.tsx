@@ -11,6 +11,7 @@ interface NavLinkItem {
 
 const navLinks: NavLinkItem[] = [
   { label: 'Work', route: '/', hash: '#work' },
+  { label: 'Services', route: '/services' },
   { label: 'About', route: '/about' },
   { label: 'Process', route: '/process' },
   { label: 'Contact', route: '/', hash: '#contact' },

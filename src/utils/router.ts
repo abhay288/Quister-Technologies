@@ -3,7 +3,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { getLenis, smoothScrollTo } from './smoothScroll'
 
-export type AppRoute = '/' | '/about' | '/process'
+export type AppRoute = '/' | '/about' | '/process' | '/services'
 
 export type TransitionPhase = 'idle' | 'covering' | 'loading' | 'revealing'
 
@@ -47,12 +47,21 @@ const ROUTE_METADATA: Record<AppRoute, RouteMetadata> = {
     ogDescription:
       'From ambition to something real. Discover our structured delivery framework, deliverables, client inputs, and transparent commitments.',
   },
+  '/services': {
+    title: 'Services | QUISTER TECHNOLOGIES — Digital Engineering & Development',
+    description:
+      'Explore QUISTER TECHNOLOGIES services across web development, mobile applications, e-commerce platforms, custom software, AI integration and interactive 3D experiences.',
+    ogTitle: 'Services | QUISTER TECHNOLOGIES — Digital Engineering & Development',
+    ogDescription:
+      'Explore QUISTER TECHNOLOGIES services across web development, mobile applications, e-commerce platforms, custom software, AI integration and interactive 3D experiences.',
+  },
 }
 
 export function normalizePathname(pathname: string): AppRoute {
   const cleaned = pathname.replace(/\/+$/, '') || '/'
   if (cleaned === '/about') return '/about'
   if (cleaned === '/process') return '/process'
+  if (cleaned === '/services') return '/services'
   return '/'
 }
 

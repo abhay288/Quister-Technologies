@@ -13,6 +13,8 @@ import ScrollHUD from './components/common/ScrollHUD'
 import GlobalPageTransition from './components/common/GlobalPageTransition'
 import AboutPage from './pages/AboutPage'
 import ProcessPage from './pages/ProcessPage'
+import ServicesPage from './pages/ServicesPage'
+import ServicesOverviewSection from './components/sections/ServicesOverviewSection'
 
 function App() {
   const currentRoute = useAppRoute()
@@ -45,10 +47,13 @@ function App() {
         <AboutPage />
       ) : currentRoute === '/process' ? (
         <ProcessPage />
+      ) : currentRoute === '/services' ? (
+        <ServicesPage />
       ) : (
         <main>
           <HeroSection />
           <SelectedWork />
+          <ServicesOverviewSection />
           <About />
           <Contact />
         </main>

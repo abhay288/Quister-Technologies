@@ -11,9 +11,9 @@ interface SitemapItem {
 
 const sitemap: SitemapItem[] = [
   { label: 'Selected Work', route: '/', hash: '#work' },
+  { label: 'Services & Capabilities', route: '/services' },
   { label: 'About Studio', route: '/about' },
   { label: 'Process Lifecycle', route: '/process' },
-  { label: 'Technology Capabilities', route: '/about', hash: '#technology-expertise' },
   { label: 'Initiate Collaboration', route: '/', hash: '#contact' },
 ]
 
@@ -242,15 +242,25 @@ export default function Footer() {
             </h3>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               {servicesList.map((srv) => (
-                <li
-                  key={srv}
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '0.8125rem',
-                    color: 'rgba(245, 240, 232, 0.5)',
-                  }}
-                >
-                  {srv}
+                <li key={srv}>
+                  <a
+                    href="/services"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      navigateTo('/services')
+                    }}
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '0.8125rem',
+                      color: 'rgba(245, 240, 232, 0.55)',
+                      textDecoration: 'none',
+                      transition: 'color 200ms',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-champagne)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(245, 240, 232, 0.55)')}
+                  >
+                    {srv}
+                  </a>
                 </li>
               ))}
             </ul>
