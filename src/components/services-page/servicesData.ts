@@ -35,19 +35,6 @@ export interface WorkingPrinciple {
   description: string
 }
 
-export interface EngagementPillar {
-  number: string
-  title: string
-  description: string
-  detail: string
-}
-
-export interface TechStackCategory {
-  category: string
-  label: string
-  technologies: string[]
-}
-
 export interface ServiceFaqItem {
   number: string
   question: string
@@ -55,7 +42,7 @@ export interface ServiceFaqItem {
 }
 
 // ---------------------------------------------------------------------------
-// 1. THREE PRIMARY SERVICE FAMILIES & SEVEN DISCIPLINES
+// 1. PRIMARY SERVICE CAPABILITY: DIGITAL EXPERIENCES
 // ---------------------------------------------------------------------------
 export const SERVICE_FAMILIES: ServiceFamily[] = [
   {
@@ -147,140 +134,10 @@ export const SERVICE_FAMILIES: ServiceFamily[] = [
       },
     ],
   },
-  {
-    id: 'business-systems',
-    number: '02',
-    eyebrow: '02 // BUSINESS ENGINEERING',
-    headline: 'Systems that make business work better.',
-    description:
-      'We develop commerce platforms and customised software systems that connect operations, simplify workflows and give businesses better control over their digital processes.',
-    theme: 'dark',
-    visualConcept: 'business-architecture',
-    disciplines: [
-      {
-        id: 'digital-commerce',
-        letter: 'D',
-        title: 'E-Commerce & Digital Commerce',
-        eyebrow: 'COMMERCE INFRASTRUCTURE // TRANSACTION SYSTEMS',
-        shortDesc:
-          'We create digital commerce experiences tailored to product catalogues, customers, transactions and business operations.',
-        detailedDesc:
-          'We architect transactional solutions that handle high catalog volumes, faceted search, seamless cart checkout, multi-tier pricing, and automated invoice delivery, giving your team reliable control over sales pipelines.',
-        capabilities: [
-          'B2B and B2C commerce platforms.',
-          'Product catalogues and inventory.',
-          'Cart and order management.',
-          'Customer interfaces.',
-          'Business dashboards.',
-          'Payment integrations where required.',
-        ],
-        deliverables: [
-          'Scalable product catalog with categorization & stock tracking',
-          'Cart, checkout, and webhook transaction listeners',
-          'Customer account portals with order tracking',
-          'Admin order management and invoice generation',
-        ],
-        techTags: ['Next.js', 'Node.js', 'PostgreSQL', 'Stripe / Razorpay', 'Tailwind'],
-        inquiryDiscipline: 'Scalable E-commerce',
-      },
-      {
-        id: 'custom-software',
-        letter: 'E',
-        title: 'Custom Software, Backend & Integrations',
-        eyebrow: 'SYSTEM ARCHITECTURE // APIS & DATABASE',
-        shortDesc:
-          'We engineer tailored applications and backend systems around specific business requirements.',
-        detailedDesc:
-          'Off-the-shelf software often forces businesses into rigid compromises. We develop bespoke backend engines, REST APIs, and administrative control panels that mirror your operational workflow with precision.',
-        capabilities: [
-          'Custom business applications.',
-          'Admin and operations dashboards.',
-          'REST APIs.',
-          'Database architecture.',
-          'Third-party integrations.',
-          'Authentication and role-based access.',
-          'Workflow automation.',
-        ],
-        deliverables: [
-          'Production RESTful backend services in Node.js / FastAPI',
-          'Normalized relational (PostgreSQL) or document (MongoDB) databases',
-          'Role-based access control (RBAC) & JWT authorization',
-          'Third-party webhook listeners & automated background jobs',
-        ],
-        techTags: ['Node.js', 'Python', 'FastAPI', 'PostgreSQL', 'MongoDB', 'Redis'],
-        inquiryDiscipline: 'Enterprise B2B System',
-      },
-    ],
-  },
-  {
-    id: 'advanced-tech',
-    number: '03',
-    eyebrow: '03 // ADVANCED TECHNOLOGY',
-    headline: 'Beyond conventional digital experiences.',
-    description:
-      'We explore advanced technology to create intelligent applications, visual computing environments and interactive experiences that extend what digital products can do.',
-    theme: 'light',
-    visualConcept: 'sculptural-geometry',
-    disciplines: [
-      {
-        id: 'ai-intelligent-systems',
-        letter: 'F',
-        title: 'AI & Intelligent Systems',
-        eyebrow: 'MACHINE INTELLIGENCE // APPLIED AI',
-        shortDesc:
-          'We develop intelligent applications that apply AI, automation and computer vision to practical workflows.',
-        detailedDesc:
-          'We cut through the noise to build AI integrations that genuinely assist users. Whether integrating large language models for smart synthesis, automated document comprehension, or intelligent workflow triggers, we deliver measurable utility.',
-        capabilities: [
-          'AI-powered applications.',
-          'LLM and API integrations.',
-          'Intelligent workflow automation.',
-          'Computer vision.',
-          'Data-driven application features.',
-          'Custom AI-powered interfaces.',
-        ],
-        deliverables: [
-          'OpenAI / Anthropic / Gemini API orchestration services',
-          'RAG (Retrieval-Augmented Generation) document pipelines',
-          'Automated data parsing and summarization workers',
-          'Telemetry monitoring & token usage optimization',
-        ],
-        techTags: ['Python', 'FastAPI', 'LangChain', 'OpenAI API', 'Vector DB'],
-        inquiryDiscipline: 'AI Integration & Agents',
-      },
-      {
-        id: 'creative-webgl',
-        letter: 'G',
-        title: '3D, WebGL & Interactive Experiences',
-        eyebrow: 'CREATIVE COMPUTING // SPATIAL WEB',
-        shortDesc:
-          'We create immersive digital environments and interactive web experiences that combine artistic direction with technical engineering.',
-        detailedDesc:
-          'We harness the GPU to craft memorable spatial interactions that differentiate forward-thinking brands. By writing custom GLSL shaders, orchestrating GSAP timelines, and optimizing 3D assets in Three.js, we create interactive experiences that remain smooth on consumer hardware.',
-        capabilities: [
-          'Three.js development.',
-          'React Three Fiber.',
-          'WebGL experiences.',
-          'Custom 3D visualisation.',
-          'Interactive animations.',
-          'Scroll-driven storytelling.',
-          'GLSL shaders and visual effects where appropriate.',
-        ],
-        deliverables: [
-          'Custom Three.js / React Three Fiber interactive scene',
-          'Physically based materials, studio lighting rigs & shadows',
-          'ScrollTrigger choreography synchronized with page sections',
-          'Graceful 2D fallback for low-power devices',
-        ],
-        techTags: ['Three.js', 'React Three Fiber', 'GLSL', 'GSAP', 'WebGL'],
-        inquiryDiscipline: 'Architecture Advisory',
-      },
-    ],
-  },
 ]
 
 // ---------------------------------------------------------------------------
-// 2. WHAT WORKING WITH QUISTER MEANS (SECTION 6)
+// 2. WHAT WORKING WITH QUISTER MEANS
 // ---------------------------------------------------------------------------
 export const WORKING_PRINCIPLES: WorkingPrinciple[] = [
   {
@@ -316,84 +173,7 @@ export const WORKING_PRINCIPLES: WorkingPrinciple[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// 3. ENGAGEMENT & PROJECT STRUCTURE (SECTION 7)
-// ---------------------------------------------------------------------------
-export const ENGAGEMENT_PILLARS: EngagementPillar[] = [
-  {
-    number: '01',
-    title: 'PROJECT SCOPE',
-    description:
-      'Requirements, features and deliverables are discussed and documented before work begins.',
-    detail:
-      'We outline clear boundaries, agreed milestones, and expected outputs so both sides share an identical understanding of what is being built.',
-  },
-  {
-    number: '02',
-    title: 'PROJECT ESTIMATE',
-    description:
-      'Pricing and timelines are based on the agreed scope and technical complexity.',
-    detail:
-      'We provide honest, transparent estimates tailored to actual engineering requirements, avoiding hidden fees or ambiguous hourly meters.',
-  },
-  {
-    number: '03',
-    title: 'MILESTONE REVIEWS',
-    description:
-      'Progress can be reviewed at mutually agreed milestones.',
-    detail:
-      'Each stage involves structured demonstration checkpoints, allowing feedback to be incorporated systematically without derailment.',
-  },
-  {
-    number: '04',
-    title: 'OWNERSHIP & HANDOVER',
-    description:
-      'Source-code, documentation and intellectual-property arrangements are defined in the project agreement.',
-    detail:
-      'Upon project completion and settlement, full rights to custom code, design files, and deployment configurations are transferred to you.',
-  },
-  {
-    number: '05',
-    title: 'POST-LAUNCH SUPPORT',
-    description:
-      'Maintenance and support can be arranged according to the project’s requirements and agreement.',
-    detail:
-      'We offer flexible ongoing maintenance agreements to handle routine updates, infrastructure monitoring, and feature extensions.',
-  },
-]
-
-// ---------------------------------------------------------------------------
-// 4. TECHNOLOGY EXPERTISE (SECTION 8)
-// ---------------------------------------------------------------------------
-export const TECH_STACK_CATEGORIES: TechStackCategory[] = [
-  {
-    category: 'WEB',
-    label: 'FRONTEND & WEB PLATFORMS',
-    technologies: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
-  },
-  {
-    category: 'BACKEND',
-    label: 'SYSTEMS & API ARCHITECTURE',
-    technologies: ['Node.js', 'Express', 'Python', 'FastAPI'],
-  },
-  {
-    category: 'DATABASE',
-    label: 'DATA STORAGE & PERSISTENCE',
-    technologies: ['MongoDB', 'PostgreSQL', 'Firebase'],
-  },
-  {
-    category: 'MOBILE',
-    label: 'APPLICATION DEVELOPMENT',
-    technologies: ['Flutter', 'React Native'],
-  },
-  {
-    category: 'CREATIVE',
-    label: 'INTERACTIVE & 3D COMPUTING',
-    technologies: ['Three.js', 'React Three Fiber', 'WebGL', 'GSAP'],
-  },
-]
-
-// ---------------------------------------------------------------------------
-// 5. SERVICE-SPECIFIC FAQ (SECTION 10)
+// 3. SERVICE-SPECIFIC FAQ
 // ---------------------------------------------------------------------------
 export const SERVICES_FAQS: ServiceFaqItem[] = [
   {

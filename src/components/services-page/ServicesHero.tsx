@@ -104,9 +104,9 @@ export default function ServicesHero() {
               className="font-sans text-base sm:text-lg lg:text-[1.2rem] leading-relaxed font-light"
               style={{ color: 'rgba(248, 245, 238, 0.90)', lineHeight: 1.75 }}
             >
-              From public-facing web platforms and mobile ecosystems to transactional business
-              engines and intelligent systems, we architect and engineer bespoke software built
-              to perform under real-world demand.
+              From public-facing web platforms and high-utility portals to cross-platform mobile
+              ecosystems and intuitive interface designs, we architect and engineer bespoke digital
+              products built to perform under real-world demand.
             </p>
             <p
               className="font-sans text-sm sm:text-base lg:text-[1.05rem] leading-relaxed font-light"
@@ -179,21 +179,21 @@ export default function ServicesHero() {
               {[
                 {
                   num: '01',
-                  label: 'DIGITAL EXPERIENCES',
-                  sub: 'Web • Mobile • UI/UX Architecture',
+                  label: 'WEB & DIGITAL PLATFORMS',
+                  sub: 'Web Applications • Portals • Dashboards',
                   target: '#family-digital-products',
                 },
                 {
                   num: '02',
-                  label: 'BUSINESS ENGINEERING',
-                  sub: 'Commerce • Custom Software & Systems',
-                  target: '#family-business-systems',
+                  label: 'MOBILE APPLICATIONS',
+                  sub: 'Flutter • Android • Native Workflows',
+                  target: '#family-digital-products',
                 },
                 {
                   num: '03',
-                  label: 'ADVANCED TECH',
-                  sub: 'Applied AI • 3D & WebGL Experiences',
-                  target: '#family-advanced-tech',
+                  label: 'UI/UX & PRODUCT DESIGN',
+                  sub: 'Design Systems • Wireframing • User Journeys',
+                  target: '#family-digital-products',
                 },
               ].map((item) => (
                 <button

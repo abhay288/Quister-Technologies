@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { ArrowUpRight, Check, Code2, Layers, Cpu } from 'lucide-react'
+import { ArrowUpRight, Check, Layers } from 'lucide-react'
 import { SERVICE_FAMILIES, ServiceFamily, ServiceDiscipline } from './servicesData'
 import { navigateTo } from '../../utils/router'
 
 export default function CapabilityChapters() {
   return (
     <div id="capability-chapters" className="relative w-full">
-      {SERVICE_FAMILIES.map((family, idx) => (
-        <FamilyChapterSection key={family.id} family={family} index={idx} />
+      {SERVICE_FAMILIES.map((family) => (
+        <FamilyChapterSection key={family.id} family={family} />
       ))}
     </div>
   )
@@ -15,10 +15,8 @@ export default function CapabilityChapters() {
 
 function FamilyChapterSection({
   family,
-  index,
 }: {
   family: ServiceFamily
-  index: number
 }) {
   const isDark = family.theme === 'dark'
   const [activeDisciplineId, setActiveDisciplineId] = useState<string>(
@@ -35,8 +33,8 @@ function FamilyChapterSection({
     navigateTo('/', `#contact?discipline=${encoded}`)
   }
 
-  // Visual icons for chapter indicators
-  const ChapterIcon = index === 0 ? Layers : index === 1 ? Code2 : Cpu
+  // Visual icon for chapter indicator
+  const ChapterIcon = Layers
 
   return (
     <section
