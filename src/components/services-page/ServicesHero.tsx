@@ -45,7 +45,7 @@ export default function ServicesHero() {
       ref={containerRef}
       id="services-hero"
       data-scroll-section
-      className="relative w-full pt-32 pb-20 sm:pt-40 sm:pb-28 lg:pt-48 lg:pb-32 overflow-hidden"
+      className="relative w-full pt-24 pb-16 sm:pt-28 sm:pb-20 lg:pt-32 lg:pb-24 overflow-hidden"
       style={{
         background: '#09090E',
         color: '#F8F5EE',
@@ -64,7 +64,7 @@ export default function ServicesHero() {
       <div className="container-wide relative z-10">
         <div ref={headerContentRef} className="max-w-5xl xl:max-w-6xl">
           {/* Eyebrow Label */}
-          <div className="flex items-center gap-3 mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 mb-5 sm:mb-6">
             <span className="w-2 h-2 rounded-full bg-[#D4B276] animate-pulse" />
             <span
               className="font-mono text-xs tracking-[0.24em] uppercase font-semibold"
@@ -80,7 +80,7 @@ export default function ServicesHero() {
 
           {/* Main Headline with Champagne Accent */}
           <h1
-            className="font-display font-light leading-[1.03] tracking-tight mb-8 sm:mb-10"
+            className="font-display font-light leading-[1.03] tracking-tight mb-6 sm:mb-8"
             style={{
               fontSize: 'clamp(2.85rem, 5.8vw, 5.25rem)',
             }}
